@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { bootstrapFcmForAuthenticatedUser } from '../services/FCMService';
+import { setAuthToken } from '../services/api';
 
 /* Screens */
 import Opening from '../screens/Common/Opening';
@@ -77,6 +78,9 @@ export default function AppNavigator() {
     const checkToken = async () => {
       try {
         const token = await AsyncStorage.getItem('userToken');
+        if (token) {
+          setAuthToken(token);
+        }
         setIsLoggedIn(!!token);
       } catch (error) {
         console.error('Error checking token:', error);

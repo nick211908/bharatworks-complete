@@ -7,6 +7,7 @@ import {
   Image,
   StyleSheet,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { AuthService } from '../../services/AuthService';
@@ -16,7 +17,10 @@ export function MobileVerification() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
 
-  const { role, phone, source, nextRoute } = route.params || {};
+  const { role, phone, email, source, nextRoute } = route.params || {};
+
+  // Determine auth mode
+  const isEmailMode = !!email;
 
   useEffect(() => {
     console.log("MobileVerification MOUNTED");
@@ -71,8 +75,10 @@ export function MobileVerification() {
 
     setLoading(true);
     try {
-      // AuthService.verifyOtp returns { user, session } or throws error
-      const data = await AuthService.verifyOtp(phone, enteredOtp);
+      // Use appropriate verification method based on auth mode
+      const data = isEmailMode
+        ? await AuthService.verifyEmailOtp(email, enteredOtp)
+        : await AuthService.verifyOtp(phone, enteredOtp);
 
       console.log("Back from AuthService.verifyOtp. Data keys:", data ? Object.keys(data) : "null");
       // if (error) throw error; // AuthService already throws
@@ -98,7 +104,10 @@ export function MobileVerification() {
       }
 
     } catch (error: any) {
-      Alert.alert("Verification Failed", error.message);
+      const errorMessage = isEmailMode
+        ? "Email verification failed. Please check your OTP and try again."
+        : "Phone verification failed. Please check your OTP and try again.";
+      Alert.alert("Verification Failed", error?.message || errorMessage);
     } finally {
       setLoading(false);
     }
@@ -226,7 +235,9 @@ export function MobileVerification() {
       <Text style={styles.title}>Verification!</Text>
 
       <Text style={styles.subtitle}>
-        Verify the code sent to +91 {phone}
+        {isEmailMode
+          ? `Verify the code sent to ${email}`
+          : `Verify the code sent to +91 ${phone}`}
       </Text>
 
       {/* Dev Mode Hint */}
@@ -258,9 +269,11 @@ export function MobileVerification() {
         onPress={handleVerify}
         disabled={loading}
       >
-        <Text style={styles.buttonText}>
-          {loading ? "Verifying..." : "Continue"}
-        </Text>
+        {loading ? (
+          <ActivityIndicator color="#FFF" />
+        ) : (
+          <Text style={styles.buttonText}>Continue</Text>
+        )}
       </TouchableOpacity>
     </View>
   );

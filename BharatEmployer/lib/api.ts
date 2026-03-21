@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeModules, Platform } from 'react-native';
 
 const API_PORT = 3000;
-const MANUAL_DEV_HOST = '13.217.29.118'; // Set IP for physical device testing
+const MANUAL_DEV_HOST = process.env.API_BASE_URL;
 
 const getMetroHost = (): string | null => {
     const scriptURL = (NativeModules as any)?.SourceCode?.scriptURL as string | undefined;
@@ -32,12 +32,20 @@ const api = axios.create({
     },
 });
 
+// In-memory token cache to avoid AsyncStorage latency per request
+let cachedToken: string | null = null;
+
+// Load token once at startup
+AsyncStorage.getItem('userToken').then(token => { cachedToken = token; });
+
 // Request interceptor to attach JWT token
 api.interceptors.request.use(
     async (config) => {
-        const token = await AsyncStorage.getItem('userToken');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+        if (!cachedToken) {
+            cachedToken = await AsyncStorage.getItem('userToken');
+        }
+        if (cachedToken) {
+            config.headers.Authorization = `Bearer ${cachedToken}`;
         }
         return config;
     },

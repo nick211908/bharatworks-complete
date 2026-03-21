@@ -1,11 +1,16 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import prisma from '../prisma';
 import { sendSmsOtp } from '../services/sms';
 import { sendOtpEmail, sendWelcomeEmail } from '../services/email';
+import { AuthRequest } from '../middleware/auth';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtkey';
+if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET missing")
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // ─── Dev Mode Config ─────────────────────────────────────────────
 const DEV_MODE = process.env.NODE_ENV !== 'production';
@@ -18,27 +23,26 @@ const generateOtp = (phone?: string) =>
 // ─── Store OTP in DB ─────────────────────────────────────────────
 
 const saveOtp = async (identifier: string, type: 'phone' | 'email', otp: string) => {
-    // Invalidate any existing unused OTPs for this identifier
-    if (type === 'phone') {
-        await prisma.otpLog.updateMany({
-            where: { phone: identifier, used: false },
-            data: { used: true },
-        });
-    } else {
-        await prisma.otpLog.updateMany({
-            where: { email: identifier, used: false },
-            data: { used: true },
-        });
-    }
-
-    await prisma.otpLog.create({
-        data: {
-            phone: type === 'phone' ? identifier : null,
-            email: type === 'email' ? identifier : null,
-            otp,
-            expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 min
-        },
-    });
+    // Invalidate any existing unused OTPs for this identifier and create new one atomically
+    await prisma.$transaction([
+        type === 'phone'
+            ? prisma.otpLog.updateMany({
+                  where: { phone: identifier, used: false },
+                  data: { used: true },
+              })
+            : prisma.otpLog.updateMany({
+                  where: { email: identifier, used: false },
+                  data: { used: true },
+              }),
+        prisma.otpLog.create({
+            data: {
+                phone: type === 'phone' ? identifier : null,
+                email: type === 'email' ? identifier : null,
+                otp,
+                expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 min
+            },
+        }),
+    ]);
 };
 
 const verifyStoredOtp = async (
@@ -152,9 +156,9 @@ export const login = async (req: Request, res: Response) => {
     }
 };
 
-export const getUser = async (req: Request, res: Response) => {
+export const getUser = async (req: AuthRequest, res: Response) => {
     try {
-        const { id } = (req as any).user;
+        const { id } = req.user!;
         const user = await prisma.user.findUnique({
             where: { id },
             include: { workers: true }
@@ -167,9 +171,9 @@ export const getUser = async (req: Request, res: Response) => {
     }
 };
 
-export const updatePassword = async (req: Request, res: Response) => {
+export const updatePassword = async (req: AuthRequest, res: Response) => {
     try {
-        const { id } = (req as any).user;
+        const { id } = req.user!;
         const { password } = req.body;
         if (!password || password.length < 6) {
             return res.status(400).json({ error: 'Password must be at least 6 characters' });
@@ -284,7 +288,7 @@ export const verifyEmailOtp = async (req: Request, res: Response) => {
         if (!user) {
             user = await prisma.user.create({
                 data: {
-                    phone: `email_${Date.now()}`, // placeholder — phone is required in schema
+                    phone: `uid_${crypto.randomUUID().slice(0, 12)}`,
                     email,
                     roles: role ? [role] : ['worker'],
                 },

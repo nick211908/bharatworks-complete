@@ -16,12 +16,12 @@ datasource db {
 
 model User {
   id                String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  phone             String       @unique
+  phone             String?      @unique
   name              String?
   password          String?      // Replaces Supabase Auth password management
   roles             String[]     @default([])
   agentTrustLevel   Int?         @default(0) @map("agent_trust_level")
-  email             String?      @unique
+  email             String       @unique
   kycStatus         String?      @map("kyc_status")
   balance           Decimal?     @default(0.00) @db.Decimal(12, 2)
   fcmToken          String?      @map("fcm_token")

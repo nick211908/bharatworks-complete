@@ -27,12 +27,12 @@ export const AuthService = {
     },
 
     /**
-     * Verifies the OTP. (Mocked for Node.js backend)
+     * Verifies the Phone OTP.
      */
-    async verifyOtp(phone: string, token: string) {
+    async verifyOtp(phone: string, otp: string) {
         const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
         try {
-            const response = await api.post('/auth/verify-otp', { phone: formattedPhone, otp: token });
+            const response = await api.post('/auth/verify-otp', { phone: formattedPhone, otp });
             const data = response.data;
             if (data.session?.access_token) {
                 await AsyncStorage.setItem('userToken', data.session.access_token);
@@ -41,6 +41,24 @@ export const AuthService = {
             return data;
         } catch (error: any) {
             console.error("Verify OTP error:", error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+    /**
+     * Verifies the Email OTP.
+     */
+    async verifyEmailOtp(email: string, otp: string) {
+        try {
+            const response = await api.post('/auth/verify-email-otp', { email, otp });
+            const data = response.data;
+            if (data.session?.access_token) {
+                await AsyncStorage.setItem('userToken', data.session.access_token);
+                await AsyncStorage.setItem('userId', data.user.id);
+            }
+            return data;
+        } catch (error: any) {
+            console.error("Verify Email OTP error:", error.response?.data || error.message);
             throw error;
         }
     },

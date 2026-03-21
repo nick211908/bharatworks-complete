@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { AuthService } from "../../services/AuthService";
@@ -137,9 +138,11 @@ export default function Login() {
           onPress={handlePasswordLogin}
           disabled={loading}
         >
-          <Text style={styles.loginButtonText}>
-            {loading ? "Logging in..." : "Login"}
-          </Text>
+          {loading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Text style={styles.loginButtonText}>Login</Text>
+          )}
         </TouchableOpacity>
 
         {/* Divider */}
