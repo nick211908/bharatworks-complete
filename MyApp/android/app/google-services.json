@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "945635197160",
+    "project_id": "bharatworks-87476",
+    "storage_bucket": "bharatworks-87476.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:945635197160:android:80f424d2fefb4ea45ac95d",
+        "android_client_info": {
+          "package_name": "com.bharatwork.labour"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAR6lKHxf0incfqfQfJmAGoF7gqwkr3l_A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
