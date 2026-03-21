@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: bharatworks
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: always
+    ports:
+      - "3000:3000"  # Expose directly on 3000 for API access
+      - "80:3000"    # Also map port 80 for HTTP
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgrespassword@db:5432/bharatworks?schema=public
+      - NODE_ENV=production
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+volumes:
+  pgdata:
