@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../prisma';
 import { buildJobAlertTwiml } from '../services/ivr';
 import { sendSms } from '../services/sms';
+import logger from '../utils/logger';
 
 /**
  * GET /api/ivr/twiml
@@ -41,7 +42,7 @@ export const ivrResponse = async (req: Request, res: Response) => {
     const workerId = req.query.workerId as string;
     const digit = req.body?.Digits;
 
-    console.log(`[IVR] Response — Job: ${jobId} | Worker: ${workerId} | Key: ${digit}`);
+    logger.info(`[IVR] Response — Job: ${jobId} | Worker: ${workerId} | Key: ${digit}`);
 
     let twimlReply: string;
 
@@ -88,7 +89,7 @@ export const ivrResponse = async (req: Request, res: Response) => {
                         sendSms(
                             worker.user.phone,
                             `✅ BharatWork: आपने "${job.title}" के लिए आवेदन कर दिया है! ₹${job.wagePerDay}/दिन। जॉब ID: ${jobId.slice(0, 8)}`
-                        ).catch(console.error);
+                        ).catch((e: any) => logger.error('[IVR] SMS confirmation failed', { message: e.message }));
                     }
 
                     twimlReply = `<?xml version="1.0" encoding="UTF-8"?>
@@ -114,7 +115,7 @@ export const ivrResponse = async (req: Request, res: Response) => {
 </Response>`;
             }
         } catch (err: any) {
-            console.error('[IVR] Accept error:', err.message);
+            logger.error('[IVR] Accept error:', { message: err.message });
             twimlReply = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Say>Sorry, an error occurred. Please try again later.</Say>
@@ -139,6 +140,6 @@ export const ivrResponse = async (req: Request, res: Response) => {
  */
 export const ivrStatus = (req: Request, res: Response) => {
     const { CallSid, CallStatus, To } = req.body;
-    console.log(`[IVR STATUS] ${CallSid} → ${To}: ${CallStatus}`);
+    logger.info(`[IVR STATUS] ${CallSid} → ${To}: ${CallStatus}`);
     res.sendStatus(200);
 };

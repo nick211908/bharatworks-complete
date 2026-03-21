@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import logger from '../utils/logger';
 
 const isDev = !process.env.SMTP_USER || process.env.SMTP_USER === 'your@gmail.com';
 
@@ -20,7 +21,7 @@ const FROM = process.env.EMAIL_FROM || 'BharatWork <noreply@bharatwork.in>';
 
 const sendEmail = async (to: string, subject: string, html: string): Promise<void> => {
     if (isDev) {
-        console.log(`\n[MOCK EMAIL] To: ${to} | Subject: ${subject}\n`);
+        logger.debug(`[MOCK EMAIL] To: ${to} | Subject: ${subject}`);
         return;
     }
     await transporter.sendMail({ from: FROM, to, subject, html });

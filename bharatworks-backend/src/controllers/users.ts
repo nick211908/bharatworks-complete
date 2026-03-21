@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import logger from '../utils/logger';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../prisma';
 
@@ -38,7 +39,7 @@ export const createEmployerProfile = async (req: AuthRequest, res: Response) => 
 
         res.status(201).json({ employer });
     } catch (error: any) {
-        console.error('Employer profile creation error:', error);
+        logger.error('Employer profile creation error:', { error });
         res.status(500).json({ error: 'Failed to create employer profile' });
     }
 }
@@ -86,7 +87,7 @@ export const createWorkerProfile = async (req: AuthRequest, res: Response) => {
 
         res.status(201).json({ worker });
     } catch (error: any) {
-        console.error('Worker profile creation error:', error);
+        logger.error('Worker profile creation error:', { error });
         res.status(500).json({ error: 'Failed to create worker profile' });
     }
 };
@@ -170,7 +171,7 @@ export const createAgentProfile = async (req: AuthRequest, res: Response) => {
 
         res.status(201).json({ agent });
     } catch (error: any) {
-        console.error('Agent registration error:', error);
+        logger.error('Agent registration error:', { error });
         res.status(500).json({ error: 'Failed to register agent' });
     }
 };
@@ -207,7 +208,7 @@ export const getAgentProfile = async (req: AuthRequest, res: Response) => {
             }
         });
     } catch (error: any) {
-        console.error('Get agent profile error:', error);
+        logger.error('Get agent profile error:', { error });
         res.status(500).json({ error: 'Failed to get agent profile' });
     }
 };
@@ -261,7 +262,7 @@ export const searchWorkers = async (req: AuthRequest, res: Response) => {
 
         res.json({ workers });
     } catch (error: any) {
-        console.error('Search workers error:', error);
+        logger.error('Search workers error:', { error });
         res.status(500).json({ error: 'Failed to search workers' });
     }
 };
@@ -326,7 +327,7 @@ export const saveEmployerAttendanceReport = async (req: AuthRequest, res: Respon
             skipped,
         });
     } catch (error: any) {
-        console.error('Save attendance error:', error);
+        logger.error('Save attendance error:', { error });
         res.status(500).json({ error: 'Failed to save attendance report' });
     }
 };
@@ -485,7 +486,7 @@ export const acceptEmployerJobPayment = async (req: AuthRequest, res: Response) 
         if (error?.code === 'P2002') {
             return res.status(409).json({ error: 'Payment already processed for one or more workers' });
         }
-        console.error('Accept payment error:', error);
+        logger.error('Accept payment error:', { error });
         res.status(500).json({ error: 'Failed to accept payment' });
     }
 };
@@ -540,7 +541,7 @@ export const getEmployerJobsWithWorkers = async (req: AuthRequest, res: Response
 
         res.json({ jobs: formatted });
     } catch (error: any) {
-        console.error('Get employer jobs error:', error);
+        logger.error('Get employer jobs error:', { error });
         res.status(500).json({ error: 'Failed to fetch jobs' });
     }
 };
@@ -616,7 +617,7 @@ export const getEmployerWorkersWithAttendance = async (req: AuthRequest, res: Re
             dateRange: { startDate, endDate },
         });
     } catch (error: any) {
-        console.error('Get workers with attendance error:', error);
+        logger.error('Get workers with attendance error:', { error });
         res.status(500).json({ error: 'Failed to fetch workers' });
     }
 };
@@ -674,7 +675,7 @@ export const markWorkerAttendance = async (req: AuthRequest, res: Response) => {
             },
         });
     } catch (error: any) {
-        console.error('Mark attendance error:', error);
+        logger.error('Mark attendance error:', { error });
         res.status(500).json({ error: 'Failed to mark attendance' });
     }
 };
@@ -778,7 +779,7 @@ export const payWorker = async (req: AuthRequest, res: Response) => {
             workerId,
         });
     } catch (error: any) {
-        console.error('Pay worker error:', error);
+        logger.error('Pay worker error:', { error });
         res.status(500).json({ error: 'Failed to process payment' });
     }
 };
@@ -806,7 +807,7 @@ async function updateWorkerDues(workerId: string, employerId: string) {
             totalEarned,
             totalPaid,
             balanceDue,
-            lastPaymentDate: totalPaid > 0 ? new Date() : undefined,
+            lastPaymentDate: totalPaid > 0 ? new Date() : null,
         },
         create: {
             workerId,
@@ -814,7 +815,7 @@ async function updateWorkerDues(workerId: string, employerId: string) {
             totalEarned,
             totalPaid,
             balanceDue,
-            lastPaymentDate: totalPaid > 0 ? new Date() : undefined,
+            lastPaymentDate: totalPaid > 0 ? new Date() : null,
         },
     });
 }
@@ -831,13 +832,13 @@ export const getWorkerAttendanceHistory = async (req: AuthRequest, res: Response
         if (!workerId) return res.status(400).json({ error: 'workerId is required' });
 
         const attendances = await prisma.attendance.findMany({
-            where: { workerId, employerId: employer.id },
+            where: { workerId: String(workerId), employerId: employer.id },
             orderBy: { date: 'desc' },
             include: { job: { select: { title: true } } },
         });
 
         const workerDues = await prisma.workerDue.findUnique({
-            where: { workerId_employerId: { workerId, employerId: employer.id } },
+            where: { workerId_employerId: { workerId: String(workerId), employerId: employer.id } },
         });
 
         res.json({
@@ -857,7 +858,7 @@ export const getWorkerAttendanceHistory = async (req: AuthRequest, res: Response
             },
         });
     } catch (error: any) {
-        console.error('Get worker attendance history error:', error);
+        logger.error('Get worker attendance history error:', { error });
         res.status(500).json({ error: 'Failed to fetch attendance history' });
     }
 };

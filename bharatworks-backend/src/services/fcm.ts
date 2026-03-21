@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import logger from '../utils/logger';
 
 // Initialize only once
 if (!admin.apps.length) {
@@ -12,9 +13,9 @@ if (!admin.apps.length) {
                 privateKey,
             }),
         });
-        console.log('[FCM] Firebase Admin initialized');
+        logger.info('[FCM] Firebase Admin initialized');
     } else {
-        console.warn('[FCM] Firebase credentials not set — running in mock mode');
+        logger.warn('[FCM] Firebase credentials not set — running in mock mode');
     }
 }
 
@@ -42,7 +43,7 @@ export const sendJobAlertToWorkers = async (
     if (!tokens.length) return 0;
 
     if (isMock) {
-        console.log(`\n[MOCK FCM] Would alert ${tokens.length} worker(s) about job: "${job.title}" (₹${job.wagePerDay}/day)`);
+        logger.debug(`[MOCK FCM] Would alert ${tokens.length} worker(s) about job: "${job.title}" (₹${job.wagePerDay}/day)`);
         return tokens.length;
     }
 
@@ -76,10 +77,10 @@ export const sendJobAlertToWorkers = async (
 
     try {
         const response = await admin.messaging().sendEachForMulticast(message);
-        console.log(`[FCM] Sent job alert to ${response.successCount}/${tokens.length} workers (${response.failureCount} failed)`);
+        logger.info(`[FCM] Sent job alert to ${response.successCount}/${tokens.length} workers (${response.failureCount} failed)`);
         return response.successCount;
     } catch (err: any) {
-        console.error('[FCM] Send failed:', err.message);
+        logger.error('[FCM] Send failed:', { message: err.message });
         return 0;
     }
 };

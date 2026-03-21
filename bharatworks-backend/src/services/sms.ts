@@ -1,4 +1,5 @@
 import twilio from 'twilio';
+import logger from '../utils/logger';
 
 const isDev = !process.env.TWILIO_ACCOUNT_SID || process.env.TWILIO_ACCOUNT_SID.startsWith('ACxxx');
 
@@ -14,7 +15,7 @@ if (!isDev) {
  */
 export const sendSmsOtp = async (phone: string, otp: string): Promise<void> => {
     if (isDev || !client) {
-        console.log(`\n🔑 [DEV MODE - MOCK SMS] OTP for ${phone} is: ${otp}\n`);
+        logger.debug(`[MOCK SMS] OTP for ${phone} is: ${otp}`);
         return;
     }
 
@@ -30,7 +31,7 @@ export const sendSmsOtp = async (phone: string, otp: string): Promise<void> => {
  */
 export const sendSms = async (phone: string, message: string): Promise<void> => {
     if (isDev || !client) {
-        console.log(`\n[MOCK SMS] To ${phone}: ${message}\n`);
+        logger.debug(`[MOCK SMS] To ${phone}: ${message}`);
         return;
     }
 

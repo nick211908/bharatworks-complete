@@ -1,5 +1,6 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
+import logger from '../utils/logger';
 
 // Lazy-init: Razorpay client is created on first use to ensure env vars are loaded
 let _razorpayClient: Razorpay | null = null;
@@ -19,7 +20,7 @@ export const isDev = (): boolean => {
     const key = process.env.RAZORPAY_KEY_ID;
     const result = !key || key === 'rzp_test_placeholder';
     if (result) {
-        console.log(`[RAZORPAY] Running in MOCK mode (key: ${key || 'NOT SET'})`);
+        logger.debug(`[RAZORPAY] Running in MOCK mode (key: ${key || 'NOT SET'})`);
     }
     return result;
 };
@@ -35,7 +36,7 @@ export const createRazorpayOrder = async (
 ): Promise<{ id: string; amount: number; currency: string }> => {
     if (isDev()) {
         const mockId = `order_mock_${Date.now()}`;
-        console.log(`[MOCK RAZORPAY] Created order ${mockId} for ₹${amountInRupees}`);
+        logger.debug(`[MOCK RAZORPAY] Created order ${mockId} for ₹${amountInRupees}`);
         return { id: mockId, amount: amountInRupees * 100, currency: 'INR' };
     }
 
@@ -58,7 +59,7 @@ export const verifyRazorpaySignature = (
     signature: string
 ): boolean => {
     if (isDev()) {
-        console.log(`[MOCK RAZORPAY] Verifying signature for order ${orderId} payment ${paymentId}`);
+        logger.debug(`[MOCK RAZORPAY] Verifying signature for order ${orderId} payment ${paymentId}`);
         return true;
     }
 

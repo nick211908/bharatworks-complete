@@ -1,4 +1,5 @@
 import twilio from 'twilio';
+import logger from '../utils/logger';
 
 const client = twilio(
     process.env.TWILIO_ACCOUNT_SID,
@@ -27,7 +28,7 @@ export const callWorkerWithJobAlert = async (
     job: IvrJobPayload
 ): Promise<void> => {
     if (isDev) {
-        console.log(`\n[MOCK IVR] Would call ${phone} for job "${job.title}" (₹${job.wagePerDay}/day)`);
+        logger.debug(`[MOCK IVR] Would call ${phone} for job "${job.title}" (₹${job.wagePerDay}/day)`);
         return;
     }
 
@@ -43,7 +44,7 @@ export const callWorkerWithJobAlert = async (
         timeout: 30, // ring for 30 seconds
     });
 
-    console.log(`[IVR] Initiated call ${call.sid} to ${phone} for job "${job.title}"`);
+    logger.info(`[IVR] Initiated call ${call.sid} to ${phone} for job "${job.title}"`);
 };
 
 /**

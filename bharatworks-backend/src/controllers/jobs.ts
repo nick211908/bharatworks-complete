@@ -5,6 +5,7 @@ import { sendJobAlertToWorkers, haversineDistanceKm, JobAlertPayload } from '../
 import { callWorkerWithJobAlert } from '../services/ivr';
 import { JobService } from '../services/JobService';
 import { AppError } from '../middleware/errorHandler';
+import logger from '../utils/logger';
 
 export const createJob = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
@@ -43,7 +44,7 @@ export const createJob = async (req: AuthRequest, res: Response, next: NextFunct
         // Fire-and-forget: don't block the response
         if (lat && lng) {
             notifyNearbyWorkers(job.id, title, Number(wagePerDay), lat, lng, !!urgent, employer.companyName || employer.user?.name || 'Employer')
-                .catch(err => console.error('[JOB ALERT] Failed to notify workers:', err.message));
+                .catch(err => logger.error('[JOB ALERT] Failed to notify workers:', { message: err.message }));
         }
 
         res.status(201).json({ job });
@@ -106,13 +107,13 @@ async function notifyNearbyWorkers(
         };
         tasks.push(
             sendJobAlertToWorkers(onlineTokens, payload)
-                .then(n => console.log(`[JOB ALERT] FCM sent to ${n} online workers`))
+                .then(n => logger.info(`[JOB ALERT] FCM sent to ${n} online workers`))
         );
     }
 
     // ─── IVR Calls (offline workers) ──────────────────
     if (offlineWorkers.length > 0) {
-        console.log(`[JOB ALERT] Initiating IVR calls to ${offlineWorkers.length} offline workers`);
+        logger.info(`[JOB ALERT] Initiating IVR calls to ${offlineWorkers.length} offline workers`);
         for (const w of offlineWorkers) {
             tasks.push(
                 callWorkerWithJobAlert(w.phone, {
@@ -124,12 +125,12 @@ async function notifyNearbyWorkers(
     }
 
     if (tasks.length === 0) {
-        console.log(`[JOB ALERT] No nearby available workers found within ${radiusKm} km`);
+        logger.info(`[JOB ALERT] No nearby available workers found within ${radiusKm} km`);
         return;
     }
 
     await Promise.allSettled(tasks);
-    console.log(`[JOB ALERT] Notified ${onlineTokens.length} online + ${offlineWorkers.length} offline workers`);
+    logger.info(`[JOB ALERT] Notified ${onlineTokens.length} online + ${offlineWorkers.length} offline workers`);
 }
 
 

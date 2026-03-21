@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import logger from '../utils/logger';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../prisma';
 import {
@@ -47,7 +48,7 @@ export const verifyVpa = async (req: AuthRequest, res: Response) => {
                     return res.json({ isValid: false, message: 'UPI ID not recognized by bank' });
                 }
                 // For other API errors, fall through to format-based validation
-                console.warn('[VPA] Razorpay API error, using format validation:', apiErr.message);
+                logger.warn('[VPA] Razorpay API error, using format validation:', apiErr.message);
             }
         }
 
@@ -56,13 +57,13 @@ export const verifyVpa = async (req: AuthRequest, res: Response) => {
         const namePart = upiId.split('@')[0].replace(/[0-9.]/g, '') || 'User';
         const displayName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
 
-        console.log(`[VPA] Format-validated ${upiId} (test mode — live keys required for bank verification)`);
+        logger.info(`[VPA] Format-validated ${upiId} (test mode — live keys required for bank verification)`);
         res.json({
             isValid: true,
             name: displayName,
         });
     } catch (error: any) {
-        console.error('VPA verification error:', error.message);
+        logger.error('VPA verification error:', error.message);
         res.status(500).json({ isValid: false, message: 'VPA verification failed' });
     }
 };
@@ -88,7 +89,7 @@ export const createOrder = async (req: AuthRequest, res: Response) => {
             key: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
         });
     } catch (error: any) {
-        console.error('Create order error:', error);
+        logger.error('Create order error:', error);
         res.status(500).json({ error: 'Failed to create payment order' });
     }
 };
@@ -152,7 +153,7 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
                 amountInRupees,
                 razorpay_payment_id,
                 'topup'
-            ).catch((err) => console.error('[EMAIL ERROR] Receipt email failed:', err.message));
+            ).catch((err) => logger.error('[EMAIL ERROR] Receipt email failed:', err.message));
         }
 
         res.json({
@@ -165,7 +166,7 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
         if (error.code === 'P2002') {
             return res.status(409).json({ error: 'This payment has already been processed' });
         }
-        console.error('Verify payment error:', error);
+        logger.error('Verify payment error:', error);
         res.status(500).json({ error: 'Failed to verify payment' });
     }
 };
@@ -186,7 +187,7 @@ export const razorpayWebhook = async (req: Request, res: Response) => {
         const event = req.body.event;
         const payload = req.body.payload?.payment?.entity;
 
-        console.log(`[RAZORPAY WEBHOOK] Event: ${event}`, payload?.id);
+        logger.info(`[RAZORPAY WEBHOOK] Event: ${event}`, payload?.id);
 
         if (event === 'payment.captured' && payload) {
             const paymentId = payload.id;
@@ -230,7 +231,7 @@ export const razorpayWebhook = async (req: Request, res: Response) => {
 
         res.json({ status: 'ok' });
     } catch (error: any) {
-        console.error('Webhook error:', error);
+        logger.error('Webhook error:', error);
         res.status(500).json({ error: 'Webhook processing failed' });
     }
 };
@@ -283,16 +284,16 @@ export const payout = async (req: AuthRequest, res: Response) => {
         if (!isDev()) {
             // Production: trigger Razorpay payout via their Payouts API
             // Requires Razorpay Banking/Payouts product activation
-            console.log(`[RAZORPAY PAYOUT] ₹${amount} to UPI ${upiId} | txn: ${payment.id}`);
+            logger.info(`[RAZORPAY PAYOUT] ₹${amount} to UPI ${upiId} | txn: ${payment.id}`);
             // TODO: razorpayClient.payouts.create({ ... }) when banking is enabled
         } else {
-            console.log(`[MOCK PAYOUT] ₹${amount} to UPI ${upiId}`);
+            logger.info(`[MOCK PAYOUT] ₹${amount} to UPI ${upiId}`);
         }
 
         // Send payout notification email
         if (user.email) {
             sendPaymentReceiptEmail(user.email, user.name || '', amount, payment.id, 'payout')
-                .catch((err) => console.error('[EMAIL ERROR]', err.message));
+                .catch((err) => logger.error('[EMAIL ERROR]', err.message));
         }
 
         res.json({
@@ -302,7 +303,7 @@ export const payout = async (req: AuthRequest, res: Response) => {
             payment,
         });
     } catch (error: any) {
-        console.error('Payout error:', error);
+        logger.error('Payout error:', error);
         res.status(500).json({ error: 'Failed to process payout' });
     }
 };
@@ -323,7 +324,7 @@ export const getPaymentHistory = async (req: AuthRequest, res: Response) => {
 
         res.json({ payments });
     } catch (error: any) {
-        console.error('Payment history error:', error);
+        logger.error('Payment history error:', error);
         res.status(500).json({ error: 'Failed to fetch payment history' });
     }
 };

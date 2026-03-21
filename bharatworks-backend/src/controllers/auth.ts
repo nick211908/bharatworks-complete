@@ -6,6 +6,7 @@ import prisma from '../prisma';
 import { sendSmsOtp } from '../services/sms';
 import { sendOtpEmail, sendWelcomeEmail } from '../services/email';
 import { AuthRequest } from '../middleware/auth';
+import logger from '../utils/logger';
 
 if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET missing")
@@ -114,7 +115,7 @@ export const signup = async (req: Request, res: Response) => {
 
         res.status(201).json({ user, token });
     } catch (error: any) {
-        console.error('Signup error:', error);
+        logger.error('Signup error:', { error });
         res.status(500).json({ error: 'Failed to create user' });
     }
 };
@@ -151,7 +152,7 @@ export const login = async (req: Request, res: Response) => {
 
         res.json({ user, token });
     } catch (error: any) {
-        console.error('Login error:', error);
+        logger.error('Login error:', { error });
         res.status(500).json({ error: 'Failed to authenticate user' });
     }
 };
@@ -200,12 +201,12 @@ export const sendOtp = async (req: Request, res: Response) => {
         // In dev mode, return the OTP in the response so the app can auto-fill
         const response: any = { message: 'OTP sent successfully' };
         if (DEV_MODE) {
-            console.log(`[DEV MODE] OTP for ${phone} is: ${otp}`);
+            logger.debug(`[DEV MODE] OTP for ${phone} is: ${otp}`);
             response.devOtp = otp;
         }
         res.json(response);
     } catch (error: any) {
-        console.error('Send OTP error:', error);
+        logger.error('Send OTP error:', { error });
         res.status(500).json({ error: 'Failed to send OTP' });
     }
 };
@@ -229,6 +230,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
             user = await prisma.user.create({
                 data: {
                     phone,
+                    email: `phone_${phone.replace(/\+/g, '')}@bharatwork.local`,
                     roles: role ? [role] : ['worker'],
                 },
             });
@@ -242,7 +244,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
 
         res.json({ user, session: { access_token: token } });
     } catch (error: any) {
-        console.error('Verify OTP error:', error);
+        logger.error('Verify OTP error:', { error });
         res.status(500).json({ error: 'Failed to verify OTP' });
     }
 };
@@ -260,12 +262,12 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
 
         const response: any = { message: 'OTP sent to email' };
         if (DEV_MODE) {
-            console.log(`[DEV MODE] Email OTP for ${email} is: ${otp}`);
+            logger.debug(`[DEV MODE] Email OTP for ${email} is: ${otp}`);
             response.devOtp = otp;
         }
         res.json(response);
     } catch (error: any) {
-        console.error('Send Email OTP error:', error);
+        logger.error('Send Email OTP error:', { error });
         res.status(500).json({ error: 'Failed to send email OTP' });
     }
 };
@@ -303,7 +305,7 @@ export const verifyEmailOtp = async (req: Request, res: Response) => {
 
         res.json({ user, session: { access_token: token } });
     } catch (error: any) {
-        console.error('Verify Email OTP error:', error);
+        logger.error('Verify Email OTP error:', { error });
         res.status(500).json({ error: 'Failed to verify email OTP' });
     }
 };

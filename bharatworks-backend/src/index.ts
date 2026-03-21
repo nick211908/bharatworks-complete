@@ -11,6 +11,8 @@ import walletRoutes from './routes/wallet';
 import notificationRoutes from './routes/notifications';
 import paymentRoutes from './routes/payment';
 import ivrRoutes from './routes/ivr';
+import logger from './utils/logger';
+import requestLogger from './middleware/requestLogger';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +20,7 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 // Middleware
 app.use(cors());
+app.use(requestLogger);
 
 // Razorpay webhook needs raw body — BEFORE express.json()
 app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
@@ -44,5 +47,6 @@ app.get('/health', (req, res) => {
 app.use(errorHandler);
 
 app.listen(Number(PORT), HOST, () => {
-    console.log(`Server running on http://${HOST}:${PORT}`);
+    logger.info(`Server running on http://${HOST}:${PORT}`);
+    logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
