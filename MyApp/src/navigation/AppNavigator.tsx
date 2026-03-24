@@ -6,6 +6,7 @@ import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { bootstrapFcmForAuthenticatedUser } from '../services/FCMService';
 import { setAuthToken } from '../services/api';
+import { navigationRef } from './navigationRef';
 
 /* Screens */
 import Opening from '../screens/Common/Opening';
@@ -75,21 +76,23 @@ export default function AppNavigator() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     const checkToken = async () => {
       try {
         const token = await AsyncStorage.getItem('userToken');
         if (token) {
           setAuthToken(token);
         }
-        setIsLoggedIn(!!token);
+        if (isMounted) setIsLoggedIn(!!token);
       } catch (error) {
         console.error('Error checking token:', error);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
 
     checkToken();
+    return () => { isMounted = false; };
   }, []);
 
   useEffect(() => {
@@ -113,7 +116,7 @@ export default function AppNavigator() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <Stack.Navigator
           initialRouteName={initialRoute}
           screenOptions={{

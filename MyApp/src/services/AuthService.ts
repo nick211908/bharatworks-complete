@@ -111,6 +111,48 @@ export const AuthService = {
     },
 
     /**
+     * Sign in an existing user with email and password.
+     */
+    async signInWithEmail(email: string, password: string) {
+        try {
+            const response = await api.post('/auth/login', {
+                email,
+                password,
+            });
+            const data = response.data;
+            if (data.token) {
+                await AsyncStorage.setItem('userToken', data.token);
+                await AsyncStorage.setItem('userId', data.user.id);
+            }
+            return { user: data.user, session: { access_token: data.token } };
+        } catch (error: any) {
+            console.error("Login email error:", error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+    /**
+     * Sign in with Google (Firebase ID Token).
+     */
+    async signInWithGoogle(idToken: string, role?: string) {
+        try {
+            const response = await api.post('/auth/firebase-login', {
+                idToken,
+                role,
+            });
+            const data = response.data;
+            if (data.session?.access_token) {
+                await AsyncStorage.setItem('userToken', data.session.access_token);
+                await AsyncStorage.setItem('userId', data.user.id);
+            }
+            return data;
+        } catch (error: any) {
+            console.error("Google login error:", error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+    /**
      * Sign out the current user.
      */
     async signOut() {

@@ -1,37 +1,38 @@
 You are a Senior React Native + TypeScript engineer.
 
 OBJECTIVE:
-Apply precise, minimal, production-grade fixes. Do NOT refactor unrelated UI. Only augment safely.
+Apply minimal, production-safe fixes. Do NOT refactor UI. Only augment.
 
 GLOBAL RULES:
-- No unnecessary rewrites
-- Preserve UI/UX
 - Modify only required lines
-- Prefer deterministic fixes
-- Keep output minimal
+- Preserve UI/UX and structure
+- No dummy data hacks
+- No unnecessary explanations
+- Deterministic fixes only
 
 ---
 
-## TASK 1: API CONFIG + INTERCEPTOR STABILITY
+## TASK 1: API CONFIG + INTERCEPTOR
 File: `MyApp/src/services/api.ts`
 
-REQUIREMENTS:
-- Remove hardcoded IP
-- Use env-based host resolution
-- Cache token in memory (avoid AsyncStorage per request)
-- Handle 401 globally
+REPLACE existing logic with:
 
-IMPLEMENT EXACTLY:
-- `getApiUrl()` using:
-  - production → fixed domain
+- Dynamic baseURL:
+  - prod → https://api.yourproductiondomain.com/api
   - dev → `EXPO_PUBLIC_API_HOST || (android ? 10.0.2.2 : localhost)`
-- Axios instance with baseURL
-- In-memory token:
+
+- Axios instance
+
+- In-memory token cache:
   `let cachedToken: string | null = null`
+
 - Export:
   `setAuthToken(token)`
+
 - Request interceptor:
-  - Load from AsyncStorage ONLY if cache empty
+  - Load token from AsyncStorage ONLY if cache empty
+  - Attach Authorization header
+
 - Response interceptor:
   - On 401:
     - clear cache
@@ -39,85 +40,69 @@ IMPLEMENT EXACTLY:
 
 ---
 
-## TASK 2: TOKEN PRELOAD ON APP START
+## TASK 2: TOKEN PRELOAD
 File: `MyApp/App.tsx` OR `AppNavigator.tsx`
-
-REQUIREMENTS:
-- Hydrate token before rendering app
 
 IMPLEMENT:
 - `useEffect`:
-  - fetch token from AsyncStorage
+  - read AsyncStorage token
   - call `setAuthToken(token)`
 - Add loading state:
-  - block navigation until loaded
-  - show spinner while loading
+  - block render until done
+  - show spinner
 
 ---
 
-## TASK 3: AUTH PAYLOAD CORRECTION
+## TASK 3: AUTH PAYLOAD FIX
 File: `MyApp/src/services/AuthService.ts`
 
-RULES:
+ENFORCE:
+- Email flow → `{ email, otp }`
+- Phone flow → `{ phone, otp }`
 - NEVER send fake phone values
-
-IMPLEMENT:
-- Email flow:
-  `{ email, otp }`
-- Phone flow:
-  `{ phone, otp }`
-- Ensure:
-  - no mixed payloads
-  - no dummy values
+- NEVER mix payloads
 
 ---
 
-## TASK 4: UI RACE CONDITION PREVENTION
+## TASK 4: UI RACE CONDITION
 Files:
 - `Login.tsx`
 - `MobileVerification.tsx`
 
 IMPLEMENT:
-1. State:
-   `const [isLoading, setIsLoading] = useState(false)`
+- State:
+  `const [isLoading, setIsLoading] = useState(false)`
 
-2. Wrap API calls:
+- Wrap API calls:
+
 `setIsLoading(true)
-try {
-await apiCall()
-} finally {
-setIsLoading(false)
-}`
+try { await fn() }
+finally { setIsLoading(false) }`
 
 
-3. Button updates:
+- Buttons:
 - `disabled={isLoading}`
-- Show `<ActivityIndicator />` when loading
+- show `<ActivityIndicator />` when loading
 
 ---
 
-## TASK 5: SEPARATE AUTH MODES
+## TASK 5: AUTH MODE SEPARATION
 File: `MobileVerification.tsx`
 
-REQUIREMENTS:
-- Do NOT mix email + phone logic
-
 IMPLEMENT:
-- If email:
-→ `verifyEmailOtp`
-- If phone:
-→ `verifyOtp`
-- Ensure:
-- clear branching logic
-- correct error messages per mode
+- Strict branching:
+- email → `verifyEmailOtp`
+- phone → `verifyOtp`
+- No mixed logic
+- Correct error messages per mode
 
 ---
 
-## OUTPUT FORMAT (STRICT):
+## OUTPUT FORMAT (STRICT)
 
 1. PATCH (unified diff ONLY)
 2. FIX SUMMARY (1 line per task)
-3. ASSUMPTIONS (if needed)
+3. ASSUMPTIONS (if required)
 
 PATCH RULES:
 - Only changed lines
@@ -130,7 +115,7 @@ PATCH RULES:
 ---
 
 PRIORITY:
-1. State consistency
+1. Data consistency
 2. Security (tokens, env)
 3. UX stability
 4. Performance (caching)
@@ -140,3 +125,15 @@ PRIORITY:
 IF NO CHANGES:
 Return:
 NO_CHANGES_REQUIRED
+
+---
+
+## TASK 6: HINDI LOCALIZATION
+Files: 
+- `Login.tsx`
+- `MobileVerification.tsx`
+
+IMPLEMENT:
+- Add a language toggle (English/Hindi) or basic context
+- Translate all user-facing strings in the Auth screens to Hindi
+- Ensure layout handles longer Hindi text correctly

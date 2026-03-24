@@ -54,6 +54,7 @@ const STATUS_LABELS: Record<AttendanceStatus, string> = {
 export default function LabourAttendanceRegister() {
     const [workers, setWorkers] = useState<Worker[]>([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
     const [refreshing, setRefreshing] = useState(false)
     const [dates, setDates] = useState<string[]>([])
     const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null)
@@ -75,6 +76,7 @@ export default function LabourAttendanceRegister() {
 
     const fetchAttendance = async () => {
         try {
+            setError(null)
             const dateRange = generateDates()
             setDates(dateRange)
 
@@ -86,9 +88,10 @@ export default function LabourAttendanceRegister() {
             })
 
             setWorkers(response.data?.workers || [])
-        } catch (error) {
-            console.error('Error fetching attendance:', error)
-            Alert.alert('Error', 'Failed to fetch attendance data')
+        } catch (err: any) {
+            const msg = err?.response?.data?.error || err?.message || 'Failed to fetch attendance data'
+            console.error('Attendance fetch error:', err?.response?.status, msg)
+            setError(msg)
         } finally {
             setLoading(false)
             setRefreshing(false)
@@ -216,6 +219,24 @@ export default function LabourAttendanceRegister() {
         )
     }
 
+    if (error) {
+        return (
+            <SafeAreaView style={styles.safe}>
+                <View style={styles.loadingContainer}>
+                    <Icon name="cloud-offline-outline" size={48} color="#F44336" />
+                    <Text style={[styles.loadingText, { color: '#F44336', marginTop: 12 }]}>Error loading attendance</Text>
+                    <Text style={{ color: '#888', fontSize: 13, textAlign: 'center', marginTop: 4, paddingHorizontal: 32 }}>{error}</Text>
+                    <TouchableOpacity
+                        onPress={() => { setLoading(true); fetchAttendance() }}
+                        style={{ marginTop: 20, backgroundColor: '#1E2C60', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 10 }}
+                    >
+                        <Text style={{ color: '#FFF', fontWeight: '600' }}>Retry</Text>
+                    </TouchableOpacity>
+                </View>
+            </SafeAreaView>
+        )
+    }
+
     return (
         <SafeAreaView style={styles.safe}>
             {/* Header */}
@@ -286,7 +307,14 @@ export default function LabourAttendanceRegister() {
                     </View>
 
                     {/* Worker Rows */}
-                    {workers.map(worker => (
+                    {workers.length === 0 ? (
+                        <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+                            <Icon name="people-outline" size={40} color="#CCC" />
+                            <Text style={{ color: '#AAA', marginTop: 12, fontSize: 14, textAlign: 'center' }}>
+                                No workers yet.{'\n'}Post a job and hire workers to see them here.
+                            </Text>
+                        </View>
+                    ) : workers.map(worker => (
                         <View key={worker.id} style={styles.row}>
                             {/* Worker Name */}
                             <View style={[styles.cell, styles.nameCell]}>

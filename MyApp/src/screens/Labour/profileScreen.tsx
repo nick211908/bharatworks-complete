@@ -5,145 +5,102 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { AuthService } from '../../services/AuthService';
 
 import COLORS from '../../assets/images/theme/colors';
-
-const Tab = ({
-  label,
-  icon,
-  active,
-}: {
-  label: string;
-  icon: string;
-  active?: boolean;
-}) => (
-  <View style={styles.tab}>
-    {icon === '🏠' ? (
-      <Feather
-        name="home"
-        size={20}
-        color={active ? COLORS.primary : COLORS.textMuted}
-      />
-    ) : icon === '🧰' ? (
-      <Feather
-        name="briefcase"
-        size={20}
-        color={active ? COLORS.primary : COLORS.textMuted}
-      />
-    ) : icon === '🙂' ? (
-      <FontAwesome5
-        name="user-tie"
-        size={20}
-        color={active ? COLORS.primary : COLORS.textMuted}
-      />
-    ) : icon === '₹' ? (
-      <Feather
-        name="dollar-sign"
-        size={20}
-        color={active ? COLORS.primary : COLORS.textMuted}
-      />
-    ) : icon === '👤' ? (
-      <Feather
-        name="user"
-        size={20}
-        color={active ? COLORS.primary : COLORS.textMuted}
-      />
-    ) : (
-      <Text style={{ color: active ? COLORS.primary : COLORS.textMuted }}>
-        {icon}
-      </Text>
-    )}
-    <Text style={[styles.tabLabel, active && { color: COLORS.primary }]}>
-      {label}
-    </Text>
-  </View>
-);
+import LabourBottomNav from '../../components/LabourBottomNav';
 
 export default function LabourProfile() {
   const navigation = useNavigation<any>();
   const { profile } = useUserProfile();
 
-  const route = useRoute<any>();
-  const handleLabourHome = () => {
-    navigation.replace('LabourHome');
-  };
-  const handleLabourJobs = () => {
-    navigation.replace('LabourAllJobs');
-  };
 
-  const handleLabourEarnings = () => {
-    navigation.replace('LabourEarnings');
-  };
-  const handleLabourProfile = () => {
-    navigation.replace('LabourProfile');
+
+  const handleLogout = async () => {
+    try {
+      await AuthService.signOut();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Opening' }],
+      });
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   return (
     <SafeAreaView style={styles.root}>
-      {/* HEADER */}
-      <Text style={styles.header}>My Profile</Text>
+      {/* HEADER BANNER */}
+      <View style={styles.bannerBackground} />
 
-      {/* AVATAR */}
-      <View style={styles.avatarSection}>
-        <View style={styles.avatar}>
-          <Feather name="user" size={40} color="#999" />
+      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        {/* HEADER */}
+        <Text style={styles.header}>My Profile</Text>
 
-          <TouchableOpacity style={styles.cameraBtn}>
-            <Feather name="camera" size={14} color="#FFF" />
-          </TouchableOpacity>
+        {/* AVATAR */}
+        <View style={styles.avatarSection}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {profile?.name ? profile.name.charAt(0).toUpperCase() : 'U'}
+            </Text>
+            <TouchableOpacity style={styles.cameraBtn}>
+              <Feather name="camera" size={14} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.name}>{profile?.name || 'User'}</Text>
+          <Text style={styles.viewProfileText}>Verified Member</Text>
         </View>
 
-        <Text style={styles.name}>{profile?.name || 'User'}</Text>
-      </View>
+        {/* INFO GRIDS */}
+        <Text style={styles.sectionTitle}>Personal Details</Text>
+        <View style={styles.sectionCard}>
+          <InfoCard
+            icon={<Feather name="phone" size={18} color={COLORS.primary} />}
+            title="Phone Number"
+            value={profile?.phone || 'N/A'}
+          />
+          <View style={styles.divider} />
+          <InfoCard
+            icon={<Feather name="tool" size={18} color={COLORS.primary} />}
+            title="Primary Skill"
+            value="Labour"
+          />
+          <View style={styles.divider} />
+          <InfoCard
+            icon={<Feather name="clock" size={18} color={COLORS.primary} />}
+            title="Work Experience"
+            value="N/A"
+          />
+        </View>
 
-      {/* INFO CARDS */}
-      <InfoCard
-        icon={<Feather name="phone" size={18} color="#000" />}
-        title="Phone"
-        value={profile?.phone || 'N/A'}
-      />
-      <InfoCard
-        icon={<Feather name="tool" size={18} color="#000" />}
-        title="Skill"
-        value="Labour"
-      />
-      <InfoCard
-        icon={<Feather name="clock" size={18} color="#000" />}
-        title="Experience"
-        value="N/A"
-      />
+        {/* DOCUMENTS */}
+        <View style={styles.documentsSection}>
+          <Text style={styles.sectionTitle}>Verification Documents</Text>
 
-      {/* DOCUMENTS */}
-      <View style={styles.documentsSection}>
-        <Text style={styles.sectionTitle}>Documents</Text>
+          <View style={styles.sectionCard}>
+            <DocumentRow title="Aadhaar Card" status="Uploaded" success={true} />
+            <View style={styles.divider} />
+            <DocumentRow title="PAN Card" status="Not Added" success={false} />
+          </View>
+        </View>
 
-        <DocumentRow title="Aadhaar" status="Uploaded" success />
-
-        <DocumentRow title="PAN" status="Not Added" success={false} />
-      </View>
+        {/* LOGOUT BUTTON */}
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+          <Feather name="log-out" size={18} color="#FF4D4D" />
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+      </ScrollView>
 
       {/* Bottom Tab Bar */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity onPress={handleLabourHome}>
-          <Tab label="Home" icon="🏠" active />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleLabourJobs}>
-          <Tab label="Jobs" icon="🧰" />
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={handleLabourEarnings}>
-          <Tab label="Earnings" icon="₹" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleLabourProfile}>
-          <Tab label="Profile" icon="👤" />
-        </TouchableOpacity>
-      </View>
+      <LabourBottomNav activeTab="Profile" />
     </SafeAreaView>
   );
 }
@@ -181,12 +138,6 @@ function DocumentRow({
 }) {
   return (
     <View style={styles.docRow}>
-      <Ionicons
-        name="document-text-outline"
-        size={24}
-        color="#555"
-        style={styles.docIcon}
-      />
       <Text style={styles.docTitle}>{title}</Text>
 
       <View
@@ -231,15 +182,13 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: COLORS.disabledBg,
+    backgroundColor: '#FFEFEB', // Solid background prevents Android rendering glitches
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    borderWidth: 2,
+    borderColor: '#FFF', // Adds premium white trim
+    overflow: 'hidden', // Forces strict circle clipping
   },
 
   cameraBtn: {
@@ -262,26 +211,27 @@ const styles = StyleSheet.create({
   name: {
     marginTop: 12,
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.textPrimary,
   },
 
+  viewProfileText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginTop: 4,
+  },
+
   infoCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    paddingVertical: 12,
   },
 
   infoIcon: {
-    marginRight: 12,
+    marginRight: 14,
+    backgroundColor: '#FFF4EB',
+    padding: 10,
+    borderRadius: 8,
   },
 
   infoTitle: {
@@ -291,8 +241,8 @@ const styles = StyleSheet.create({
   },
 
   infoValue: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
     color: COLORS.textPrimary,
   },
 
@@ -301,24 +251,38 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: COLORS.textPrimary,
     marginBottom: 12,
+    paddingHorizontal: 4,
   },
 
-  docRow: {
+  sectionCard: {
     backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    marginBottom: 20,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: '#F3F4F6',
+    width: '100%',
+  },
+
+  docRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
   },
 
   docIcon: {
@@ -327,59 +291,78 @@ const styles = StyleSheet.create({
 
   docTitle: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
     color: COLORS.textPrimary,
   },
 
   docStatus: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
 
   docSuccess: {
-    backgroundColor: COLORS.successBg,
+    backgroundColor: '#E6F4EA',
   },
 
   docError: {
-    backgroundColor: COLORS.errorBg,
+    backgroundColor: '#FFF0F0',
   },
 
   docStatusText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
   },
 
   successText: {
-    color: COLORS.successText,
+    color: '#2E7D32',
   },
 
   errorText: {
-    color: COLORS.errorText,
+    color: '#D32F2F',
   },
-  tabBar: {
+
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#FFEBEB',
+    borderRadius: 12,
+    paddingVertical: 14,
+    marginTop: 10,
+    marginBottom: 40,
+    gap: 8,
+  },
+
+  logoutText: {
+    color: '#FF4D4D',
+    fontWeight: '700',
+    fontSize: 15,
+  },
+
+
+
+  bannerBackground: {
     position: 'absolute',
-    bottom: 0,
+    top: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: COLORS.card,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderColor: COLORS.border,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    height: 120,
+    backgroundColor: COLORS.primary,
+    opacity: 0.85,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
-  tab: {
-    alignItems: 'center',
+  scrollContainer: {
+    padding: 16,
+    paddingBottom: 80,
   },
-  tabLabel: {
-    fontSize: 12,
-    color: COLORS.textMuted,
+  avatarText: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: COLORS.primary,
   },
 });

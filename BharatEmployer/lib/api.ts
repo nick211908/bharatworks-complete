@@ -1,6 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules, Platform, DeviceEventEmitter } from 'react-native';
 
 const API_PORT = 3000;
 const MANUAL_DEV_HOST = process.env.API_BASE_URL;
@@ -50,6 +50,21 @@ api.interceptors.request.use(
         return config;
     },
     (error) => {
+        return Promise.reject(error);
+    }
+);
+
+// Response interceptor to handle 401/403 globally
+api.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+            // Clear cached token and storage on unauthorized/forbidden
+            cachedToken = null;
+            await AsyncStorage.removeItem('userToken');
+            await AsyncStorage.removeItem('employerProfileComplete');
+            DeviceEventEmitter.emit('AUTH_LOGOUT');
+        }
         return Promise.reject(error);
     }
 );

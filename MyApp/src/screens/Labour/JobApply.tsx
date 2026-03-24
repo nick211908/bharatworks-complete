@@ -3,12 +3,12 @@ import {
     View,
     Text,
     StyleSheet,
-    SafeAreaView,
     ScrollView,
     TouchableOpacity,
     Alert,
     ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import COLORS from '../../assets/images/theme/colors';
 import Feather from 'react-native-vector-icons/Feather';
@@ -16,6 +16,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { JobService } from '../../services/JobService';
+import LabourBottomNav from '../../components/LabourBottomNav';
 /* =======================
    DESIGN TOKENS
    ======================= */
@@ -25,49 +26,39 @@ import { JobService } from '../../services/JobService';
    TYPES & MOCK DATA
    ======================= */
 
-const Tab = ({
-    label,
-    icon,
-    active,
-}: {
-    label: string;
-    icon: string;
-    active?: boolean;
-}) => (
-    <View style={styles.tab}>
-        {icon === "🏠" ? <Feather name="home" size={20} color={active ? COLORS.primary : COLORS.textMuted} /> :
-            icon === "🧰" ? <Feather name="briefcase" size={20} color={active ? COLORS.primary : COLORS.textMuted} /> :
-                icon === "🙂" ? <FontAwesome5 name="user-tie" size={20} color={active ? COLORS.primary : COLORS.textMuted} /> :
-                    icon === "₹" ? <Feather name="dollar-sign" size={20} color={active ? COLORS.primary : COLORS.textMuted} /> :
-                        icon === "👤" ? <Feather name="user" size={20} color={active ? COLORS.primary : COLORS.textMuted} /> :
-                            <Text style={{ color: active ? COLORS.primary : COLORS.textMuted }}>{icon}</Text>}
-        <Text
-            style={[
-                styles.tabLabel,
-                active && { color: COLORS.primary },
-            ]}
-        >
-            {label}
-        </Text>
-    </View>
-);
+
 
 const LabourJobApply: React.FC = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
     const [applying, setApplying] = useState(false);
     const [applied, setApplied] = useState(false);
+    const [jobData, setJobData] = useState<any>(route.params?.job || {});
+    const [fetching, setFetching] = useState(false);
 
-    // Get real job data passed via navigation
-    const job = route.params?.job || {};
+    React.useEffect(() => {
+        const loadFullJob = async () => {
+            if (jobData?.id) {
+                try {
+                    setFetching(true);
+                    const data = await JobService.getJobById(jobData.id);
+                    if (data) {
+                        setJobData(data);
+                    }
+                } catch (e) {
+                    console.error('loadFullJob error:', e);
+                } finally {
+                    setFetching(false);
+                }
+            }
+        };
+        loadFullJob();
+    }, [route.params?.job?.id]);
 
-    const handleLabourHome = () => { navigation.replace('LabourHome'); };
-    const handleLabourJobs = () => { navigation.replace('LabourAllJobs'); };
-    const handleLabourEarnings = () => { navigation.replace('LabourEarnings'); };
-    const handleLabourProfile = () => { navigation.replace('LabourProfile'); };
+
 
     const handleApply = async () => {
-        if (!job?.id) {
+        if (!jobData?.id) {
             Alert.alert('Error', 'Job ID missing, cannot apply.');
             return;
         }
@@ -77,7 +68,7 @@ const LabourJobApply: React.FC = () => {
         }
         try {
             setApplying(true);
-            await JobService.applyForJob(job.id, '');
+            await JobService.applyForJob(jobData.id, '');
             setApplied(true);
             Alert.alert('Success! 🎉', 'You have successfully applied for this job. The employer will contact you shortly.');
         } catch (err: any) {
@@ -93,16 +84,25 @@ const LabourJobApply: React.FC = () => {
             <View style={styles.container}>
                 {/* Header */}
                 <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <Feather name="arrow-left" size={20} color={COLORS.textPrimary} />
+                    </TouchableOpacity>
                     <Text style={styles.headerTitle}>Job Details</Text>
+                    <View style={{ width: 40 }} />
                 </View>
 
-                <ScrollView contentContainerStyle={styles.scrollContent}>
+                {/* Banner Background */}
+                <View style={styles.bannerBackground} />
+
+                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                     {/* Card 1: Job Info */}
                     <View style={styles.card}>
                         <View style={styles.jobHeadingRow}>
                             <View style={styles.titleContainer}>
-                                <Text style={styles.jobTitle}>{job.title || 'Job Details'}</Text>
-                                <Text style={styles.companyName}>{job.company_name || job.employers?.company_name || 'Employer'}</Text>
+                                <Text style={styles.jobTitle}>{jobData.title || 'Job Details'}</Text>
+                                <Text style={styles.companyName}>
+                                    {jobData.company_name || jobData.employers?.company_name || 'Employer'}
+                                </Text>
                             </View>
                             <View style={styles.verifiedBadge}>
                                 <Text style={styles.verifiedText}>Verified</Text>
@@ -111,43 +111,34 @@ const LabourJobApply: React.FC = () => {
 
                         <View style={styles.ratingRow}>
                             <View style={{ flexDirection: 'row', marginRight: 6 }}>
-                                {[1, 2, 3, 4].map(i => <FontAwesome5 name="star" solid size={14} color="#FBBF24" key={i} />)}
-                                <FontAwesome5 name="star" size={14} color="#FBBF24" />
+                                {[1, 2, 3, 4, 5].map(i => <FontAwesome5 name="star" solid size={12} color="#FFD700" key={i} />)}
                             </View>
                             <Text style={styles.ratingText}>
-                                4.5 • Employer
+                                {jobData.rating || '4.5'} • Employer Rating
                             </Text>
                         </View>
 
                         <View style={styles.infoRow}>
-                            <Ionicons name="location-outline" size={18} color={COLORS.textPrimary} style={styles.icon} />
+                            <Ionicons name="location-outline" size={18} color={COLORS.primary} style={styles.icon} />
                             <Text style={styles.infoText}>
-                                Location{job.lat ? ` (${Number(job.lat).toFixed(3)}, ${Number(job.lng).toFixed(3)})` : ' — Not specified'}
+                                {jobData.lat ? `Location (${Number(jobData.lat).toFixed(3)}, ${Number(jobData.lng).toFixed(3)})` : 'Location — Not specified'}
                             </Text>
                         </View>
 
                         <View style={styles.infoRow}>
-                            <Feather name="calendar" size={18} color={COLORS.textPrimary} style={styles.icon} />
+                            <Feather name="calendar" size={18} color={COLORS.primary} style={styles.icon} />
                             <Text style={styles.infoText}>
-                                {job.start_time ? new Date(job.start_time).toLocaleDateString() : 'Date TBD'} • Duration varies
+                                {jobData.start_time ? new Date(jobData.start_time).toLocaleDateString() : 'Date TBD'} • Duration varies
                             </Text>
                         </View>
 
                         <View style={styles.timeRow}>
                             <View style={styles.timeWrapper}>
-                                <Feather name="clock" size={18} color={COLORS.textPrimary} style={styles.icon} />
-                                <Text style={styles.infoText}>{job.start_time ? new Date(job.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '9:00 AM'} — work hours</Text>
+                                <Feather name="clock" size={18} color={COLORS.primary} style={styles.icon} />
+                                <Text style={styles.infoText}>
+                                    {jobData.start_time ? new Date(jobData.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '9:00 AM'} — work hours
+                                </Text>
                             </View>
-                            <TouchableOpacity
-                                style={[styles.applyButtonSmall, (applying || applied) && { opacity: 0.6 }]}
-                                onPress={handleApply}
-                                disabled={applying || applied}
-                            >
-                                {applying
-                                    ? <ActivityIndicator color="#fff" size="small" />
-                                    : <Text style={styles.applyButtonText}>{applied ? '✓ Applied' : 'Apply for Job'}</Text>
-                                }
-                            </TouchableOpacity>
                         </View>
                     </View>
 
@@ -155,17 +146,19 @@ const LabourJobApply: React.FC = () => {
                     <View style={styles.card}>
                         <Text style={styles.sectionTitle}>Job Description</Text>
                         <Text style={styles.descriptionText}>
-                            {job.title ? `Looking for experienced workers for "${job.title}" position. ${job.count ? `${job.count} slot(s) available.` : ''}` : 'No description available.'}
+                            {jobData.title ? `Looking for experienced workers for "${jobData.title}" position. ${jobData.count || jobData.slots_total ? `${jobData.count || jobData.slots_total} slot(s) available.` : ''}` : 'No description available.'}
                         </Text>
 
                         <Text style={[styles.sectionTitle, { marginTop: 16 }]}>Job Status</Text>
                         <View style={styles.skillsContainer}>
                             <View style={styles.skillChip}>
-                                <Text style={styles.skillText}>{job.status || 'OPEN'}</Text>
+                                <Text style={styles.skillText}>{jobData.status || 'OPEN'}</Text>
                             </View>
-                            {job.urgent && <View style={[styles.skillChip, { backgroundColor: '#FEE2E2' }]}>
-                                <Text style={[styles.skillText, { color: '#B91C1C' }]}>URGENT</Text>
-                            </View>}
+                            {jobData.urgent ? (
+                                <View style={[styles.skillChip, { backgroundColor: '#FEE2E2' }]}>
+                                    <Text style={[styles.skillText, { color: '#B91C1C' }]}>URGENT</Text>
+                                </View>
+                            ) : null}
                         </View>
                     </View>
 
@@ -176,42 +169,48 @@ const LabourJobApply: React.FC = () => {
                                 <Text style={styles.sectionTitle}>Daily Wage</Text>
                                 <Text style={styles.paymentTerms}>Paid daily after work</Text>
                             </View>
-                            <Text style={styles.wageAmount}>₹{job.wage_per_day || '--'}/day</Text>
+                            <Text style={styles.wageAmount}>₹{jobData.wagePerDay || jobData.wage_per_day || '--'}/day</Text>
                         </View>
                     </View>
 
                     {/* Card 4: Safety */}
                     <View style={styles.card}>
                         <View style={styles.safetyHeader}>
-                            <Ionicons name="shield-checkmark" size={20} color="#3B82F6" style={{ marginRight: 8 }} />
+                            <Feather name="shield" size={20} color={COLORS.primary} style={{ marginRight: 8 }} />
                             <Text style={styles.sectionTitle}>Safety Measures</Text>
                         </View>
                         <Text style={styles.safetyText}>
                             This employer provides safety equipment and follows standard safety protocols.
                         </Text>
                         <View style={styles.verifiedByRow}>
-                            <Feather name="check" size={14} color="#3B82F6" style={styles.checkIcon} />
+                            <Feather name="check-circle" size={14} color="#3B82F6" style={styles.checkIcon} />
                             <Text style={styles.verifiedByText}>Verified by BharatWork</Text>
                         </View>
                     </View>
                 </ScrollView>
 
-                {/* Bottom Navigation Mockup (Visual Only based on image) */}
-                <View style={styles.tabBar}>
-                    <TouchableOpacity onPress={handleLabourHome}>
-                        <Tab label="Home" icon="🏠" active />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handleLabourJobs}>
-                        <Tab label="Jobs" icon="🧰" />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity onPress={handleLabourEarnings}>
-                        <Tab label="Earnings" icon="₹" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handleLabourProfile}>
-                        <Tab label="Profile" icon="👤" />
+                {/* Sticky Apply Button */}
+                <View style={styles.stickyFooterButton}>
+                    <TouchableOpacity
+                        style={[styles.applyButtonFull, (applying || applied) && { backgroundColor: COLORS.success }]}
+                        onPress={handleApply}
+                        disabled={applying || applied}
+                    >
+                        {applying ? (
+                            <ActivityIndicator color="#fff" size="small" />
+                        ) : (
+                            <>
+                                {applied ? <Feather name="check" size={18} color="#fff" style={{ marginRight: 4 }} /> : null}
+                                <Text style={styles.applyButtonFullText}>
+                                    {applied ? 'Application Sent' : 'Apply for Job'}
+                                </Text>
+                            </>
+                        )}
                     </TouchableOpacity>
                 </View>
+
+                {/* Bottom Navigation */}
+                <LabourBottomNav activeTab="Home" />
             </View>
         </SafeAreaView>
     );
@@ -448,24 +447,50 @@ const styles = StyleSheet.create({
         fontSize: 10,
         color: COLORS.muted,
     },
-    tabBar: {
+
+    backButton: {
+        padding: 8,
+    },
+    bannerBackground: {
         position: 'absolute',
-        bottom: 0,
+        top: 0,
         left: 0,
         right: 0,
-        flexDirection: 'row',
-        justifyContent: 'space-around',
+        height: 140,
+        backgroundColor: COLORS.primary,
+        opacity: 0.1, // Soft background tint
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
+    },
+    stickyFooterButton: {
+        position: 'absolute',
+        bottom: 50, // Above bottom tabs
+        left: 0,
+        right: 0,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
         backgroundColor: COLORS.white,
-        paddingVertical: 10,
         borderTopWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: COLORS.borderLight,
+        elevation: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        zIndex: 1000, // Guarantee Click interactive
     },
-    tab: {
+    applyButtonFull: {
+        backgroundColor: COLORS.primary,
+        borderRadius: 12,
+        paddingVertical: 15,
         alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'center',
     },
-    tabLabel: {
-        fontSize: 11,
-        color: COLORS.textMuted,
+    applyButtonFullText: {
+        color: COLORS.white,
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });
 

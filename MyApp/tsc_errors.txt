@@ -1,0 +1,54 @@
+﻿src/components/JobCard.tsx(3,21): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/Feather'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/Feather.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/Feather';`
+src/screens/Agent/AgentOpening.tsx(4,21): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/Feather'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/Feather.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/Feather';`
+src/screens/Agent/AgentOpening.tsx(49,16): error TS2345: Argument of type '{ workersAdded: any; earnings: any; pending: any; }' is not assignable to parameter of type 'SetStateAction<{ name: string; workersAdded: number; }>'.
+  Property 'name' is missing in type '{ workersAdded: any; earnings: any; pending: any; }' but required in type '{ name: string; workersAdded: number; }'.
+src/screens/Common/MobileVerification.tsx(268,13): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: TextInputProps): TextInput', gave the following error.
+    Type '(ref: TextInput | null) => TextInput' is not assignable to type 'Ref<TextInput> | undefined'.
+      Type '(ref: TextInput | null) => TextInput' is not assignable to type '(instance: TextInput | null) => void | (() => VoidOrUndefinedOnly)'.
+        Type 'TextInput' is not assignable to type 'void | (() => VoidOrUndefinedOnly)'.
+  Overload 2 of 2, '(props: TextInputProps, context: any): TextInput', gave the following error.
+    Type '(ref: TextInput | null) => TextInput' is not assignable to type 'Ref<TextInput> | undefined'.
+      Type '(ref: TextInput | null) => TextInput' is not assignable to type '(instance: TextInput | null) => void | (() => VoidOrUndefinedOnly)'.
+        Type 'TextInput' is not assignable to type 'void | (() => VoidOrUndefinedOnly)'.
+src/screens/Labour/earningScreen.tsx(11,21): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/Feather'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/Feather.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/Feather';`
+src/screens/Labour/earningScreen.tsx(12,26): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/FontAwesome5'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/FontAwesome5.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/FontAwesome5';`
+src/screens/Labour/JobApply.tsx(14,21): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/Feather'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/Feather.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/Feather';`
+src/screens/Labour/JobApply.tsx(15,22): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/Ionicons'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/Ionicons.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/Ionicons';`
+src/screens/Labour/JobApply.tsx(16,26): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/FontAwesome5'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/FontAwesome5.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/FontAwesome5';`
+src/screens/Labour/JobApply.tsx(17,27): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/MaterialIcons'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/MaterialIcons.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/MaterialIcons';`
+src/screens/Labour/jobScreen.tsx(2,22): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/Ionicons'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/Ionicons.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/Ionicons';`
+src/screens/Labour/jobScreen.tsx(3,27): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/MaterialIcons'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/MaterialIcons.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/MaterialIcons';`
+src/screens/Labour/jobScreen.tsx(4,36): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/MaterialCommunityIcons'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/MaterialCommunityIcons.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/MaterialCommunityIcons';`
+src/screens/Labour/jobScreen.tsx(200,21): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/Feather'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/Feather.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/Feather';`
+src/screens/Labour/jobScreen.tsx(201,26): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/FontAwesome5'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/FontAwesome5.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/FontAwesome5';`
+src/screens/Labour/portfolioLabour.tsx(17,21): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/Feather'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/Feather.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/Feather';`
+src/screens/Labour/portfolioLabour.tsx(18,22): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/Ionicons'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/Ionicons.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/Ionicons';`
+src/screens/Labour/portfolioLabour.tsx(19,27): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/MaterialIcons'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/MaterialIcons.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/MaterialIcons';`
+src/screens/Labour/portfolioLabour.tsx(20,26): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/FontAwesome5'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/FontAwesome5.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/FontAwesome5';`
+src/screens/Labour/portfolioLabour.tsx(21,36): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/MaterialCommunityIcons'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/MaterialCommunityIcons.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/MaterialCommunityIcons';`
+src/screens/Labour/profileScreen.tsx(11,21): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/Feather'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/Feather.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/Feather';`
+src/screens/Labour/profileScreen.tsx(12,22): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/Ionicons'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/Ionicons.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/Ionicons';`
+src/screens/Labour/profileScreen.tsx(13,26): error TS7016: Could not find a declaration file for module 'react-native-vector-icons/FontAwesome5'. 'C:/Users/Acer/Desktop/Bharatworks/MyApp/node_modules/react-native-vector-icons/FontAwesome5.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-native-vector-icons` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-native-vector-icons/FontAwesome5';`
+src/services/api.ts(6,25): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.

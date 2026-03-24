@@ -6,14 +6,15 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TextInput,
   ScrollView,
   TouchableOpacity,
   Platform,
   PermissionsAndroid
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import JobCard from '../../components/JobCard';
+import LabourBottomNav from '../../components/LabourBottomNav';
 import JobAlertModal from '../../components/JobAlertModal';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { JobService } from '../../services/JobService';
@@ -113,16 +114,6 @@ const LabourAllJobs: React.FC = () => {
   const handleLabourHome = () => {
     navigation.replace('LabourHome');
   };
-  const handleLabourJobs = () => {
-    navigation.replace('LabourAllJobs');
-  };
-
-  const handleLabourEarnings = () => {
-    navigation.replace('LabourEarnings');
-  };
-  const handleLabourProfile = () => {
-    navigation.replace('LabourProfile');
-  };
   return (
     <SafeAreaView style={styles.safe}>
       {/* Job Alert Modal — Uber style popup */}
@@ -178,21 +169,7 @@ const LabourAllJobs: React.FC = () => {
       </ScrollView>
 
       {/* Bottom Navigation */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity onPress={handleLabourHome}>
-          <Tab label="Home" icon="home" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleLabourJobs}>
-          <Tab label="Jobs" icon="jobs" active />
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={handleLabourEarnings}>
-          <Tab label="Earnings" icon="earnings" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleLabourProfile}>
-          <Tab label="Profile" icon="profile" />
-        </TouchableOpacity>
-      </View>
+      <LabourBottomNav activeTab="Jobs" />
     </SafeAreaView>
   );
 };
@@ -218,43 +195,7 @@ const ActionButton = ({
 );
 
 
-const Tab = ({
-  icon,
-  label,
-  active,
-}: {
-  icon: string;
-  label: string;
-  active?: boolean;
-}) => {
-  const color = active ? COLORS.primary : COLORS.muted;
 
-  const renderIcon = () => {
-    switch (icon) {
-      case "home":
-        return <Feather name="home" size={22} color={color} />;
-      case "jobs":
-        return <Feather name="briefcase" size={22} color={color} />;
-      case "agent":
-        return <MaterialCommunityIcons name="account-group" size={24} color={color} />;
-      case "earnings":
-        return <Feather name="dollar-sign" size={22} color={color} />;
-      case "profile":
-        return <Feather name="user" size={22} color={color} />;
-      default:
-        return <Feather name="circle" size={22} color={color} />;
-    }
-  };
-
-  return (
-    <View style={styles.tab}>
-      {renderIcon()}
-      <Text style={[styles.tabLabel, active && { color: COLORS.primary }]}>
-        {label}
-      </Text>
-    </View>
-  );
-};
 
 /* =======================
    STYLES
@@ -308,25 +249,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  tabBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: COLORS.white,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderColor: COLORS.border,
-  },
-  tab: {
-    alignItems: 'center',
-  },
-  tabLabel: {
-    fontSize: 11,
-    color: COLORS.muted,
-  },
+
 });
 
 export default LabourAllJobs;

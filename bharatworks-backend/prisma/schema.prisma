@@ -25,6 +25,7 @@ model User {
   kycStatus         String?      @map("kyc_status")
   balance           Decimal?     @default(0.00) @db.Decimal(12, 2)
   fcmToken          String?      @map("fcm_token")
+  photoUrl          String?      @map("photo_url")
   createdAt         DateTime     @default(now()) @map("created_at")
   lastLogin         DateTime?    @map("last_login")
 

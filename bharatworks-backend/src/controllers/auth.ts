@@ -7,6 +7,7 @@ import { sendSmsOtp } from '../services/sms';
 import { sendOtpEmail, sendWelcomeEmail } from '../services/email';
 import { AuthRequest } from '../middleware/auth';
 import logger from '../utils/logger';
+import * as admin from 'firebase-admin';
 
 if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET missing")
@@ -309,3 +310,53 @@ export const verifyEmailOtp = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to verify email OTP' });
     }
 };
+
+// ─── Firebase Login (OAuth) ───────────────────────────────────────
+
+export const firebaseLogin = async (req: Request, res: Response) => {
+    try {
+        const { idToken, role } = req.body;
+        if (!idToken) return res.status(400).json({ error: 'ID token is required' });
+
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const { email, name, picture, uid } = decodedToken;
+
+        if (!email) {
+            return res.status(400).json({ error: 'Email not found in identity token' });
+        }
+
+        let user = await prisma.user.findFirst({ where: { email } });
+
+        if (!user) {
+            user = await prisma.user.create({
+                data: {
+                    phone: `f_${uid.slice(0, 12)}`, // Fallback phone identifier
+                    email,
+                    name: name ?? null,
+                    photoUrl: picture ?? null,
+                    roles: role ? [role] : ['worker'],
+                },
+            });
+        }
+
+        // optionally update the picture if the user exists but has no picture?
+        if (user && !user.photoUrl && picture) {
+            user = await prisma.user.update({
+                where: { id: user.id },
+                data: { photoUrl: picture }
+            });
+        }
+
+        const token = jwt.sign(
+            { id: user.id, phone: user.phone, email: user.email, roles: user.roles, photoUrl: user.photoUrl },
+            JWT_SECRET,
+            { expiresIn: '30d' }
+        );
+
+        res.json({ user, session: { access_token: token } });
+    } catch (error: any) {
+        logger.error('Firebase Login error:', { error });
+        res.status(500).json({ error: 'Failed to verify token: ' + error.message });
+    }
+};
+

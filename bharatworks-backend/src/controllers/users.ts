@@ -862,3 +862,66 @@ export const getWorkerAttendanceHistory = async (req: AuthRequest, res: Response
         res.status(500).json({ error: 'Failed to fetch attendance history' });
     }
 };
+// Returns how much the employer owes a specific labour with unpaid attendance breakdown.
+
+export const getWorkerDues = async (req: AuthRequest, res: Response) => {
+    try {
+        if (!req.user?.id) return res.status(401).json({ error: 'Unauthorized' });
+
+        const employer = await prisma.employer.findFirst({ where: { userId: req.user.id } });
+        if (!employer) return res.status(404).json({ error: 'Employer profile not found' });
+
+        const rawWorkerId = req.params.workerId;
+        if (!rawWorkerId) return res.status(400).json({ error: 'workerId is required' });
+        const workerId = String(rawWorkerId);
+
+        const worker = await prisma.worker.findUnique({
+            where: { id: workerId },
+            include: { user: { select: { id: true, name: true, phone: true } } },
+        });
+        if (!worker) return res.status(404).json({ error: 'Worker not found' });
+
+        const dues = await prisma.workerDue.findUnique({
+            where: { workerId_employerId: { workerId, employerId: employer.id } },
+        });
+
+        const unpaidAttendances = await prisma.attendance.findMany({
+            where: {
+                workerId,
+                employerId: employer.id,
+                paymentStatus: { in: ['UNPAID', 'PARTIAL'] },
+                status: { in: ['PRESENT', 'HALF'] },
+            },
+            orderBy: { date: 'desc' },
+            include: { job: { select: { title: true } } },
+        });
+
+        res.json({
+            worker: {
+                id: worker.id,
+                name: worker.user?.name || 'Unknown',
+                phone: worker.user?.phone || '',
+                userId: worker.userId,
+            },
+            dues: {
+                totalEarned: dues?.totalEarned ? Number(dues.totalEarned) : 0,
+                totalPaid: dues?.totalPaid ? Number(dues.totalPaid) : 0,
+                balanceDue: dues?.balanceDue ? Number(dues.balanceDue) : 0,
+                lastPaymentDate: dues?.lastPaymentDate || null,
+            },
+            unpaidAttendances: unpaidAttendances.map((a) => ({
+                id: a.id,
+                date: a.date.toISOString().split('T')[0],
+                status: a.status,
+                wage: Number(a.wage || 0),
+                amountPaid: Number(a.amountPaid || 0),
+                remaining: Number(a.wage || 0) - Number(a.amountPaid || 0),
+                paymentStatus: a.paymentStatus,
+                jobTitle: a.job?.title || null,
+            })),
+        });
+    } catch (error: any) {
+        logger.error('Get worker dues error:', { error });
+        res.status(500).json({ error: 'Failed to fetch worker dues' });
+    }
+};

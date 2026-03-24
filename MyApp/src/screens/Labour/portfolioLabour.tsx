@@ -11,6 +11,7 @@ import {
   BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import api from '../../services/api';
@@ -19,6 +20,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import JobCard from '../../components/JobCard';
+import LabourBottomNav from '../../components/LabourBottomNav';
 
 import COLORS from '../../assets/images/theme/colors';
 const Stat = ({ label, value }: { label: string; value: string }) => (
@@ -28,74 +31,9 @@ const Stat = ({ label, value }: { label: string; value: string }) => (
   </View>
 );
 
-const JobCard = ({
-  title,
-  company,
-  pay,
-  distance,
-}: {
-  title: string;
-  company: string;
-  pay: string;
-  distance: string;
-}) => (
-  <View style={styles.jobCard}>
-    <View style={styles.jobCardLeft}>
-      <Text style={styles.jobTitle} numberOfLines={2}>{title}</Text>
-      <Text style={styles.jobCompany} numberOfLines={1}>{company}</Text>
-    </View>
 
-    <View style={styles.jobCardRight}>
-      <Text style={styles.jobPay} numberOfLines={1}>{pay}</Text>
-      <Text style={styles.jobDistance} numberOfLines={1}>{distance}</Text>
-    </View>
-  </View>
-);
 
-const Tab = ({
-  label,
-  icon,
-  active,
-}: {
-  label: string;
-  icon: string;
-  active?: boolean;
-}) => {
-  const color = active ? COLORS.primary : COLORS.textMuted;
 
-  // Map icon identifiers to proper vector icons
-  const renderIcon = () => {
-    switch (icon) {
-      case 'home':
-        return <Feather name="home" size={22} color={color} />;
-      case 'jobs':
-        return <Feather name="briefcase" size={22} color={color} />;
-      case 'agent':
-        return (
-          <MaterialCommunityIcons
-            name="account-group"
-            size={24}
-            color={color}
-          />
-        );
-      case 'earnings':
-        return <Feather name="dollar-sign" size={22} color={color} />;
-      case 'profile':
-        return <Feather name="user" size={22} color={color} />;
-      default:
-        return <Feather name="circle" size={22} color={color} />;
-    }
-  };
-
-  return (
-    <View style={styles.tab}>
-      {renderIcon()}
-      <Text style={[styles.tabLabel, active && { color: COLORS.primary }]}>
-        {label}
-      </Text>
-    </View>
-  );
-};
 
 const LabourHome: React.FC = () => {
   // ── All hooks first (Rules of Hooks) ──────────────────────────────
@@ -108,10 +46,33 @@ const LabourHome: React.FC = () => {
 
   // ── Effects ───────────────────────────────────────────────────────
   React.useEffect(() => {
+    const loadStatus = async () => {
+      try {
+        const val = await AsyncStorage.getItem('isOnline');
+        if (val !== null) setIsOnline(val === 'true');
+      } catch (e) {
+        console.warn('Load status error:', e);
+      }
+    };
+    loadStatus();
+  }, []);
+
+  const handleOnlineChange = async (val: boolean) => {
+    setIsOnline(val);
+    try {
+      await AsyncStorage.setItem('isOnline', val ? 'true' : 'false');
+    } catch (e) {
+      console.error('Save status error:', e);
+    }
+  };
+
+  React.useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await api.get('/jobs?status=OPEN&limit=5');
-        setJobs(response.data.jobs || []);
+        // Use lowercase 'open' as status casing
+        const response = await api.get('/jobs?status=open');
+        const retrievedJobs = response.data.jobs || [];
+        setJobs(retrievedJobs.slice(0, 5));
       } catch (error) {
         console.error('Home fetchJobs error:', error);
       }
@@ -162,7 +123,7 @@ const LabourHome: React.FC = () => {
           <View style={styles.headerRight}>
             <Switch
               value={isOnline}
-              onValueChange={val => setIsOnline(val)}
+              onValueChange={handleOnlineChange}
               thumbColor={isOnline ? COLORS.primary : '#f4f3f4'}
               trackColor={{ false: '#d0d0d0', true: COLORS.primary + '66' }}
             />
@@ -175,8 +136,8 @@ const LabourHome: React.FC = () => {
         {/* Online/Offline Alert */}
         {!isOnline ? (
           <View style={styles.alert}>
-            <Ionicons
-              name="warning-outline"
+            <Feather
+              name="alert-circle"
               size={20}
               color={COLORS.textPrimary}
               style={{ marginRight: 8 }}
@@ -187,8 +148,8 @@ const LabourHome: React.FC = () => {
           </View>
         ) : (
           <View style={[styles.alert, styles.alertOnline]}>
-            <Ionicons
-              name="checkmark-circle-outline"
+            <Feather
+              name="check-circle"
               size={20}
               color="#2e7d32"
               style={{ marginRight: 8 }}
@@ -201,11 +162,18 @@ const LabourHome: React.FC = () => {
 
         {/* Profile Card */}
         <View style={styles.card}>
-          <View style={styles.profileRow}>
-            <Image
-              source={{ uri: 'https://i.pravatar.cc/150?img=3' }}
-              style={styles.avatar}
-            />
+            {profile?.photoUrl ? (
+              <Image
+                source={{ uri: profile.photoUrl }}
+                style={styles.avatar}
+              />
+            ) : (
+              <View style={[styles.avatar, { backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' }]}>
+                <Text style={{ color: '#FFF', fontSize: 24, fontWeight: '700' }}>
+                  {profile?.name ? profile.name.charAt(0).toUpperCase() : 'U'}
+                </Text>
+              </View>
+            )}
 
             <View style={{ flex: 1 }}>
               <View style={styles.nameRow}>
@@ -222,7 +190,6 @@ const LabourHome: React.FC = () => {
               </Text>
               <Text style={styles.skill}>Labour</Text>
             </View>
-          </View>
 
           <View style={styles.statsRow}>
             <Stat
@@ -239,8 +206,8 @@ const LabourHome: React.FC = () => {
 
         {/* AI Match */}
         <View style={styles.aiCard}>
-          <MaterialIcons
-            name="record-voice-over"
+          <Feather
+            name="zap"
             size={24}
             color={COLORS.primary}
             style={styles.aiIcon}
@@ -258,7 +225,10 @@ const LabourHome: React.FC = () => {
             title={job.title}
             company={job.employers?.company_name || 'Unknown Company'}
             pay={`₹${job.wage_per_day}/day`}
-            distance="Unknown distance"
+            distance={"Not listed"}
+            skills={job.skills ? (typeof job.skills === 'string' ? job.skills.split(',').map((s: string) => s.trim()) : job.skills) : []}
+            urgent={job.status === 'OPEN'}
+            onPress={() => navigation.navigate('LabourJobApply', { job })}
           />
         ))}
 
@@ -273,21 +243,7 @@ const LabourHome: React.FC = () => {
       </Animated.ScrollView>
 
       {/* Bottom Tab Bar */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity onPress={handleLabourHome}>
-          <Tab label="Home" icon="home" active />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleLabourJobs}>
-          <Tab label="Jobs" icon="jobs" />
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={handleLabourEarnings}>
-          <Tab label="Earnings" icon="earnings" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleLabourProfile}>
-          <Tab label="Profile" icon="profile" />
-        </TouchableOpacity>
-      </View>
+      <LabourBottomNav activeTab="Home" />
     </SafeAreaView>
   );
 };
@@ -543,28 +499,4 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 
-  tabBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: COLORS.card,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderColor: COLORS.border,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  tab: {
-    alignItems: 'center',
-  },
-  tabLabel: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-  },
 });

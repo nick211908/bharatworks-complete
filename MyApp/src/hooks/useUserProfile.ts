@@ -7,6 +7,7 @@ export interface UserProfile {
     name: string | null;
     phone: string | null;
     roles: string[];
+    photoUrl?: string | null;
     // Worker specific fields
     worker_id?: string;
     expected_wage?: number;
@@ -35,6 +36,7 @@ export function useUserProfile() {
                     name: user.name,
                     phone: user.phone,
                     roles: user.roles,
+                    photoUrl: user.photoUrl,
                     worker_id: user.workers?.[0]?.id,
                     expected_wage: user.workers?.[0]?.expectedWage,
                     reliability_score: user.workers?.[0]?.reliabilityScore,

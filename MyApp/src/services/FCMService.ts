@@ -1,7 +1,17 @@
-import messaging from '@react-native-firebase/messaging';
+import {
+    getMessaging,
+    requestPermission,
+    getToken,
+    onMessage,
+    setBackgroundMessageHandler,
+    onTokenRefresh,
+    AuthorizationStatus
+} from '@react-native-firebase/messaging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from './api';
 import { PermissionsAndroid, Platform } from 'react-native';
+
+const messaging = getMessaging();
 
 /**
  * Request notification permission from the OS.
@@ -17,10 +27,10 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
         }
     }
 
-    const authStatus = await messaging().requestPermission();
+    const authStatus = await requestPermission(messaging);
     const enabled =
-        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+        authStatus === AuthorizationStatus.AUTHORIZED ||
+        authStatus === AuthorizationStatus.PROVISIONAL;
     return enabled;
 };
 
@@ -33,7 +43,7 @@ export const registerFcmToken = async (): Promise<string | null> => {
         const enabled = await requestNotificationPermission();
         if (!enabled) return null;
 
-        const token = await messaging().getToken();
+        const token = await getToken(messaging);
         await AsyncStorage.setItem('fcmToken', token);
         await api.put('/users/fcm-token', { fcmToken: token });
         console.log('[FCM] Token registered:', token.slice(0, 20) + '...');
@@ -52,7 +62,7 @@ export const registerFcmToken = async (): Promise<string | null> => {
 export const onForegroundJobAlert = (
     callback: (job: JobAlertData) => void
 ): (() => void) => {
-    return messaging().onMessage(async remoteMessage => {
+    return onMessage(messaging, async remoteMessage => {
         if (remoteMessage.data?.type === 'JOB_ALERT') {
             callback(remoteMessage.data as unknown as JobAlertData);
         }
@@ -64,7 +74,7 @@ export const onForegroundJobAlert = (
  * Call this once at the app root level.
  */
 export const setupBackgroundHandler = () => {
-    messaging().setBackgroundMessageHandler(async remoteMessage => {
+    setBackgroundMessageHandler(messaging, async remoteMessage => {
         if (remoteMessage.data?.type === 'JOB_ALERT') {
             await AsyncStorage.setItem('pendingJobAlert', JSON.stringify(remoteMessage.data));
         }
@@ -81,7 +91,7 @@ export const bootstrapFcmForAuthenticatedUser = (): (() => void) => {
         console.warn('[FCM] Initial token registration failed:', e?.message || e);
     });
 
-    return messaging().onTokenRefresh(async (token) => {
+    return onTokenRefresh(messaging, async (token) => {
         try {
             await AsyncStorage.setItem('fcmToken', token);
             await api.put('/users/fcm-token', { fcmToken: token });
