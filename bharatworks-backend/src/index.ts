@@ -11,6 +11,7 @@ import walletRoutes from './routes/wallet';
 import notificationRoutes from './routes/notifications';
 import paymentRoutes from './routes/payment';
 import ivrRoutes from './routes/ivr';
+import earningsRoutes from './routes/earnings';
 import logger from './utils/logger';
 import requestLogger from './middleware/requestLogger';
 
@@ -37,6 +38,7 @@ app.use('/api/wallet', walletRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/ivr', ivrRoutes);
+app.use('/api/earnings', earningsRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

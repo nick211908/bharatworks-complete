@@ -6,14 +6,35 @@ export const getBalance = async (req: AuthRequest, res: Response) => {
     try {
         if (!req.user || !req.user.id) return res.status(401).json({ error: 'Unauthorized' });
 
+        const userId = req.user.id;
+
+        // Fetch available balance
         const user = await prisma.user.findUnique({
-            where: { id: req.user.id },
+            where: { id: userId },
             select: { balance: true }
         });
 
         if (!user) return res.status(404).json({ error: 'User not found' });
 
-        res.json({ balance: user.balance });
+        // Fetch pending dues (balanceDue from all employers)
+        const worker = await prisma.worker.findFirst({
+            where: { userId },
+            select: { id: true }
+        });
+
+        let pending = 0;
+        if (worker) {
+            const dues = await prisma.workerDue.findMany({
+                where: { workerId: worker.id },
+                select: { balanceDue: true }
+            });
+            pending = dues.reduce((sum, d) => sum + Number(d.balanceDue), 0);
+        }
+
+        res.json({ 
+            balance: Number(user.balance || 0),
+            pending 
+        });
     } catch (error: any) {
         console.error('Fetch balance error:', error);
         res.status(500).json({ error: 'Failed to fetch balance' });
