@@ -7,17 +7,19 @@ import {
   Platform,
   StyleSheet
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useTranslation } from "react-i18next";
 
 
 export default function LabourOccupationDetailEntry() {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { role, name, gender, dob, pincode, city, state } = route.params || {};
   const [occupation, setOccupation] = useState<"Labour" | "Mistri" | "Other" | "">("");
   const [lastworked, setLastWorked] = useState("");
   const [experience, setExperience] = useState("");
+  
   const handleSkip = () => {
     navigation.replace("UploadAadhaarCard", {
       role,
@@ -52,22 +54,26 @@ export default function LabourOccupationDetailEntry() {
   return (
     <View style={styles.container}>
       {/* Heading */}
-      <Text style={styles.heading}>Register Yourself!</Text>
+      <Text style={styles.heading}>{t('auth.registerYourself')}</Text>
 
       {/* Personal Details Header */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Occupation Details</Text>
+        <Text style={styles.sectionTitle}>{t('auth.occupationDetails')}</Text>
         <TouchableOpacity onPress={handleSkip}>
-          <Text style={styles.skipText}>Skip</Text>
+          <Text style={styles.skipText}>{t('common.skip')}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Gender */}
-      <Text style={styles.label}>Occupation</Text>
+      {/* Occupation */}
+      <Text style={styles.label}>{t('auth.occupation')}</Text>
           <View style={styles.dropdown}>
-        <TouchableOpacity onPress={() => setOccupation("Labour")}>
+        <TouchableOpacity onPress={() => setOccupation(occupation === "" ? "Labour" : "")}>
           <Text style={styles.dropdownText}>
-            {occupation || "Select"}
+            {occupation ? (
+              occupation === "Labour" ? t('auth.labour') :
+              occupation === "Mistri" ? t('auth.mistri') :
+              t('auth.other')
+            ) : t('auth.select')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -75,31 +81,31 @@ export default function LabourOccupationDetailEntry() {
       {occupation === "" && (
         <View style={styles.genderOptions}>
           <TouchableOpacity onPress={() => setOccupation("Labour")}>
-            <Text style={styles.optionText}>Labour</Text>
+            <Text style={styles.optionText}>{t('auth.labour')}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setOccupation("Mistri")}>
-            <Text style={styles.optionText}>Mistri</Text>
+            <Text style={styles.optionText}>{t('auth.mistri')}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setOccupation("Other")}>
-            <Text style={styles.optionText}>Other</Text>
+            <Text style={styles.optionText}>{t('auth.other')}</Text>
           </TouchableOpacity>
         </View>
         )}
 
     {/* Last Worked */}
-    <Text style={styles.label}>Last Work You Do</Text>
+    <Text style={styles.label}>{t('auth.lastWork')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter your last work"
+            placeholder={t('auth.enterLastWork')}
             placeholderTextColor="#777"
             value={lastworked}
             onChangeText={setLastWorked}
           />
     {/* Experience */}
-    <Text style={styles.label}>Experience</Text>
+    <Text style={styles.label}>{t('auth.experience')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter your experience"
+            placeholder={t('auth.enterExperience')}
             placeholderTextColor="#777"
             value={experience}
             onChangeText={setExperience}
@@ -108,7 +114,7 @@ export default function LabourOccupationDetailEntry() {
 
       {/* Next Button */}
       <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-        <Text style={styles.nextText}>Next</Text>
+        <Text style={styles.nextText}>{t('common.next')}</Text>
       </TouchableOpacity>
     </View>
   );

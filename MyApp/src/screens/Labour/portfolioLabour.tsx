@@ -22,6 +22,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import JobCard from '../../components/JobCard';
 import LabourBottomNav from '../../components/LabourBottomNav';
+import { useTranslation } from 'react-i18next';
 
 import COLORS from '../../assets/images/theme/colors';
 const Stat = ({ label, value }: { label: string; value: string }) => (
@@ -31,11 +32,8 @@ const Stat = ({ label, value }: { label: string; value: string }) => (
   </View>
 );
 
-
-
-
-
 const LabourHome: React.FC = () => {
+  const { t } = useTranslation();
   // ── All hooks first (Rules of Hooks) ──────────────────────────────
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -101,10 +99,7 @@ const LabourHome: React.FC = () => {
   }, []);
 
   // ── Handlers ──────────────────────────────────────────────────────
-  const handleLabourHome = () => navigation.replace('LabourHome');
   const handleLabourJobs = () => navigation.replace('LabourAllJobs');
-  const handleLabourEarnings = () => navigation.replace('LabourEarnings');
-  const handleLabourProfile = () => navigation.replace('LabourProfile');
   const handleLabourNotifications = () => navigation.replace('LabourJobNotification');
 
   return (
@@ -116,8 +111,8 @@ const LabourHome: React.FC = () => {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.hello}>Hello, {profile?.name || 'User'}</Text>
-            <Text style={styles.welcome}>Welcome back!</Text>
+            <Text style={styles.hello}>{t('labour.hello')}, {profile?.name || 'User'}</Text>
+            <Text style={styles.welcome}>{t('labour.welcomeBack')}</Text>
           </View>
 
           <View style={styles.headerRight}>
@@ -143,7 +138,7 @@ const LabourHome: React.FC = () => {
               style={{ marginRight: 8 }}
             />
             <Text style={styles.alertText}>
-              Offline mode active. Job alerts will not arrive via SMS.
+              {t('labour.offlineModeActive')}
             </Text>
           </View>
         ) : (
@@ -155,7 +150,7 @@ const LabourHome: React.FC = () => {
               style={{ marginRight: 8 }}
             />
             <Text style={[styles.alertText, { color: '#2e7d32' }]}>
-              You are online. Job alerts are active.
+              {t('labour.onlineModeActive')}
             </Text>
           </View>
         )}
@@ -186,23 +181,23 @@ const LabourHome: React.FC = () => {
               </View>
 
               <Text style={styles.rating}>
-                Reliability: {profile?.reliability_score || 0}
+                {t('labour.reliability')}: {profile?.reliability_score || 0}
               </Text>
-              <Text style={styles.skill}>Labour</Text>
+              <Text style={styles.skill}>{t('auth.labour')}</Text>
             </View>
 
           <View style={styles.statsRow}>
             <Stat
-              label="Expected Wage"
+              label={t('labour.expectedWage')}
               value={`₹${profile?.expected_wage || 0}`}
             />
-            <Stat label="Experience" value="N/A" />
-            <Stat label="Jobs Completed" value="0" />
+            <Stat label={t('auth.experience')} value="N/A" />
+            <Stat label={t('labour.jobsCompleted')} value="0" />
           </View>
         </View>
 
         {/* Jobs Available */}
-        <Text style={styles.sectionTitle}>Jobs Available</Text>
+        <Text style={styles.sectionTitle}>{t('labour.availableJobs')}</Text>
 
         {/* AI Match */}
         <View style={styles.aiCard}>
@@ -213,8 +208,8 @@ const LabourHome: React.FC = () => {
             style={styles.aiIcon}
           />
           <View>
-            <Text style={styles.aiTitle}>New AI Job Match!</Text>
-            <Text style={styles.aiSub}>{jobs.length} new jobs found</Text>
+            <Text style={styles.aiTitle}>{t('labour.newAiJobMatch')}</Text>
+            <Text style={styles.aiSub}>{t('labour.newJobsFound', { count: jobs.length })}</Text>
           </View>
         </View>
 
@@ -224,8 +219,8 @@ const LabourHome: React.FC = () => {
             key={job.id}
             title={job.title}
             company={job.employers?.company_name || 'Unknown Company'}
-            pay={`₹${job.wage_per_day}/day`}
-            distance={"Not listed"}
+            pay={`₹${job.wage_per_day}${t('labour.perDay')}`}
+            distance={t('labour.unknownDistance')}
             skills={job.skills ? (typeof job.skills === 'string' ? job.skills.split(',').map((s: string) => s.trim()) : job.skills) : []}
             urgent={job.status === 'OPEN'}
             onPress={() => navigation.navigate('LabourJobApply', { job })}
@@ -233,12 +228,12 @@ const LabourHome: React.FC = () => {
         ))}
 
         {jobs.length === 0 && (
-          <Text style={styles.noJobsText}>No jobs available currently.</Text>
+          <Text style={styles.noJobsText}>{t('labour.noJobsCurrently')}</Text>
         )}
 
         {/* View All */}
         <TouchableOpacity style={styles.viewAll} onPress={handleLabourJobs}>
-          <Text style={styles.viewAllText}>View All Jobs</Text>
+          <Text style={styles.viewAllText}>{t('labour.viewAllJobs')}</Text>
         </TouchableOpacity>
       </Animated.ScrollView>
 

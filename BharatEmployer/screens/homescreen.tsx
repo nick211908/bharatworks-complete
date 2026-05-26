@@ -16,9 +16,11 @@ import SearchInput from '../components/SearchInput'
 import PrimaryButton from '../components/PrimaryButton'
 import WorkerCard from '../components/WorkerCard'
 import api from '../lib/api'
+import { useTranslation } from 'react-i18next'
 
 export default function HomeScreen() {
     const navigation = useNavigation()
+    const { t } = useTranslation()
     const [workers, setWorkers] = useState<any[]>([])
 
     useEffect(() => {
@@ -47,8 +49,8 @@ export default function HomeScreen() {
                             style={styles.avatar}
                         />
                         <View>
-                            <Text style={styles.greeting}>Hi Employer</Text>
-                            <Text style={styles.subGreeting}>Good Morning</Text>
+                            <Text style={styles.greeting}>{t('home.greeting')}</Text>
+                            <Text style={styles.subGreeting}>{t('home.goodMorning')}</Text>
                         </View>
                     </View>
 
@@ -63,10 +65,10 @@ export default function HomeScreen() {
                 {/* BANNER */}
                 <View style={styles.banner}>
                     <View style={{ flex: 1 }}>
-                        <Text style={styles.bannerTitle}>Get Your Work Done</Text>
-                        <Text style={styles.bannerSub}>For Every Work Contact</Text>
+                        <Text style={styles.bannerTitle}>{t('home.bannerTitle')}</Text>
+                        <Text style={styles.bannerSub}>{t('home.bannerSub')}</Text>
                         <PrimaryButton
-                            title="Hire Now"
+                            title={t('home.hireNow')}
                             style={styles.bannerBtn}
                             textStyle={styles.bannerBtnText}
                         />
@@ -82,8 +84,8 @@ export default function HomeScreen() {
 
                 {/* SECTION TITLE */}
                 <Text style={styles.sectionTitle}>
-                    Get Your Work
-                    <Text style={styles.sectionHighlight}> Done with Ease</Text>
+                    {t('home.sectionTitle')}
+                    <Text style={styles.sectionHighlight}>{t('home.sectionHighlight')}</Text>
                 </Text>
 
                 {/* WORKERS GRID */}
@@ -92,12 +94,12 @@ export default function HomeScreen() {
                         <WorkerCard
                             key={worker.id}
                             name={worker.users?.name || 'Worker'}
-                            role="Labour" // Hardcoded role for now, or fetch from schema if exists
-                            price={`₹ ${worker.expected_wage}/- Day`}
+                            role={t('home.workerRole')}
+                            price={`₹ ${worker.expected_wage}${t('home.perDay')}`}
                             imageUri={`https://i.pravatar.cc/150?u=${worker.id}`}
                         />
                     ))}
-                    {workers.length === 0 && <Text style={{ marginLeft: 20, color: '#777' }}>No workers found.</Text>}
+                    {workers.length === 0 && <Text style={{ marginLeft: 20, color: '#777' }}>{t('home.noWorkers')}</Text>}
                 </View>
             </ScrollView>
 

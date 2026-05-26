@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   KeyboardAvoidingView,
@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { AuthService } from '../../services/AuthService';
-import { t } from '../../utils/i18n';
+import { useTranslation } from 'react-i18next';
 
 // Components
 import {
@@ -24,6 +24,7 @@ import {
 } from '../../components/common';
 
 export default function Login() {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { role } = route.params || {};
@@ -34,21 +35,18 @@ export default function Login() {
   const [authMode, setAuthMode] = useState<'phone' | 'email'>('phone');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [lang, setLang] = useState<'en' | 'hi'>('en');
-
-
 
   const handlePasswordLogin = async () => {
     if (authMode === 'phone' && phone.length !== 10) {
-      Alert.alert('Invalid Phone', t('invalidPhone'));
+      Alert.alert(t('common.error'), t('auth.invalidPhone'));
       return;
     }
     if (authMode === 'email' && (!email || !email.includes('@'))) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address');
+      Alert.alert(t('common.error'), t('auth.emailPlaceholder'));
       return;
     }
     if (password.length < 6) {
-      Alert.alert('Invalid Password', t('invalidPassword'));
+      Alert.alert(t('common.error'), t('auth.invalidPassword'));
       return;
     }
 
@@ -66,8 +64,8 @@ export default function Login() {
       }
     } catch (error: any) {
       Alert.alert(
-        'Login Failed',
-        error.response?.data?.error || error.message || 'Invalid credentials'
+        t('common.failed'),
+        error.response?.data?.error || error.message || t('common.error')
       );
     } finally {
       setIsLoading(false);
@@ -88,17 +86,14 @@ export default function Login() {
       setIsLoading(true);
       const { GoogleSignin } = require('@react-native-google-signin/google-signin');
       
-      // Configure right before use to avoid startup crashes
-      GoogleSignin.configure({
-        // webClientId: 'YOUR_WEB_CLIENT_ID'
-      });
+      GoogleSignin.configure({});
 
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       const idToken = userInfo.data?.idToken;
 
       if (!idToken) {
-        Alert.alert('Login Failed', 'Failed to retrieve Google identity token');
+        Alert.alert(t('common.failed'), t('common.error'));
         return;
       }
 
@@ -110,7 +105,7 @@ export default function Login() {
       }
     } catch (error: any) {
       console.error('Google Login Error:', error);
-      Alert.alert('Google Login Failed', error.message || 'Aborted');
+      Alert.alert(t('common.failed'), error.message || t('common.error'));
     } finally {
       setIsLoading(false);
     }
@@ -132,7 +127,7 @@ export default function Login() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <LanguageToggle lang={lang} onToggle={setLang} />
+        <LanguageToggle />
 
         <Logo size="medium" />
 
@@ -142,15 +137,15 @@ export default function Login() {
             style={{ alignSelf: 'flex-end', marginBottom: 12 }}
           >
             <Text style={{ color: '#FF9F1C', fontWeight: '600', fontSize: 13 }}>
-              {authMode === 'phone' ? 'Use Email instead' : 'Use Phone instead'}
+              {authMode === 'phone' ? t('auth.useEmail') : t('auth.usePhone')}
             </Text>
           </TouchableOpacity>
 
           {authMode === 'phone' ? (
             <Input
-              label={t('phoneNumberLabel')}
+              label={t('auth.phoneNumberLabel')}
               prefix="+91"
-              placeholder={t('phonePlaceholder')}
+              placeholder={t('auth.phonePlaceholder')}
               keyboardType="phone-pad"
               maxLength={10}
               value={phone}
@@ -158,8 +153,8 @@ export default function Login() {
             />
           ) : (
             <Input
-              label="Email Address"
-              placeholder="Enter your email"
+              label={t('auth.emailLabel')}
+              placeholder={t('auth.emailPlaceholder')}
               keyboardType="email-address"
               autoCapitalize="none"
               value={email}
@@ -168,8 +163,8 @@ export default function Login() {
           )}
 
           <PasswordInput
-            label={t('passwordLabel')}
-            placeholder={t('passwordPlaceholder')}
+            label={t('auth.passwordLabel')}
+            placeholder={t('auth.passwordPlaceholder')}
             value={password}
             onChangeText={setPassword}
             showPassword={showPassword}
@@ -177,7 +172,7 @@ export default function Login() {
           />
 
           <Button
-            title={t('loginBtn')}
+            title={t('auth.loginBtn')}
             onPress={handlePasswordLogin}
             loading={isLoading}
             disabled={isLoading}
@@ -187,30 +182,25 @@ export default function Login() {
         <Divider />
 
         <Button
-          title={t('loginWithPhone')}
+          title={t('auth.loginWithPhone')}
           onPress={handleOtpLogin}
           variant="secondary"
         />
 
         <Button
-          title={t('continueWithGoogle')}
+          title={t('auth.continueWithGoogle')}
           onPress={handleGoogleLogin}
           variant="outline"
           style={styles.googleButton}
         />
 
         <View style={styles.footer}>
-          <Button
-            title={<>
-              <>
-                {t('noAccount')}{' '}
-                <Text style={{ color: '#FF9F1C', fontWeight: '600' }}>{t('signUp')}</Text>
-              </>
-            </>
-            }
-            onPress={() => navigation.navigate('Authentication', { role })}
-            variant="text"
-          />
+          <TouchableOpacity onPress={() => navigation.navigate('Authentication', { role })}>
+             <Text style={styles.footerText}>
+                {t('auth.noAccount')}{' '}
+                <Text style={{ color: '#FF9F1C', fontWeight: '600' }}>{t('auth.signUp')}</Text>
+             </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -238,5 +228,10 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginTop: 24,
+    alignItems: 'center',
   },
+  footerText: {
+    color: '#666',
+    fontSize: 14,
+  }
 });

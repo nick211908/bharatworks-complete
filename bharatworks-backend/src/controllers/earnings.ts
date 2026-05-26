@@ -47,6 +47,10 @@ export const getEarningsSummary = async (req: AuthRequest, res: Response) => {
 
         const totalEarned = totalEarnedFromPayments + totalPending;
 
+        // Count unique job IDs for "total jobs"
+        const uniqueJobs = new Set(recentPayments.map(p => p.jobId).filter(Boolean));
+        const totalJobs = uniqueJobs.size;
+
         // Count days that had at least one payment as "working days"
         const workingDaySet = new Set(
             recentPayments.map(p => p.createdAt.toISOString().split('T')[0])
@@ -149,5 +153,85 @@ export const getTransactions = async (req: AuthRequest, res: Response) => {
     } catch (error: any) {
         logger.error('Get transactions error:', error);
         res.status(500).json({ error: 'Failed to fetch transactions' });
+    }
+};
+
+// ─── GET /api/earnings/pending ────────────────────────────────────
+// Returns a breakdown of pending dues grouped by employer.
+
+export const getPendingDues = async (req: AuthRequest, res: Response) => {
+    try {
+        if (!req.user?.id) return res.status(401).json({ error: 'Unauthorized' });
+        const userId = req.user.id;
+
+        const worker = await prisma.worker.findFirst({
+            where: { userId },
+            select: { id: true }
+        });
+
+        if (!worker) {
+            return res.json({ pendingDues: [] });
+        }
+
+        const dues = await prisma.workerDue.findMany({
+            where: { 
+                workerId: worker.id,
+                balanceDue: { gt: 0 }
+            },
+            include: {
+                employer: {
+                    include: {
+                        user: { select: { name: true } }
+                    }
+                }
+            }
+        });
+
+        const pendingDues = dues.map(d => ({
+            employerId: d.employerId,
+            companyName: d.employer.companyName || d.employer.user?.name || 'Unknown Employer',
+            amount: Number(d.balanceDue)
+        }));
+
+        res.json({ pendingDues });
+    } catch (error: any) {
+        logger.error('Get pending dues error:', error);
+        res.status(500).json({ error: 'Failed to fetch pending dues' });
+    }
+};
+
+// ─── POST /api/earnings/request-payment ───────────────────────────
+// Sends a notification to an employer requesting payment for pending dues.
+
+export const requestPayment = async (req: AuthRequest, res: Response) => {
+    try {
+        if (!req.user?.id) return res.status(401).json({ error: 'Unauthorized' });
+        
+        const { employerId, amount } = req.body;
+        if (!employerId || !amount) {
+            return res.status(400).json({ error: 'Employer ID and amount are required' });
+        }
+
+        const employer = await prisma.employer.findUnique({
+            where: { id: employerId }
+        });
+
+        if (!employer) {
+            return res.status(404).json({ error: 'Employer not found' });
+        }
+
+        await prisma.notification.create({
+            data: {
+                userId: employer.userId,
+                title: 'Payment Request',
+                body: `${(req.user as any).name || 'A worker'} has requested a payment of ₹${amount} for pending dues.`,
+                type: 'PAYMENT_REQUEST'
+            }
+        });
+
+        res.json({ success: true, message: 'Payment request sent successfully' });
+    } catch (error: any) {
+        logger.error('Request payment error:', error);
+        res.status(500).json({ error: 'Failed to send payment request' });
     }
 };

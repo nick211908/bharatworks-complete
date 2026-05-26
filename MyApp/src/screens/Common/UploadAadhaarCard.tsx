@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { pick, types } from "@react-native-documents/picker";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 
 const { width } = Dimensions.get("window");
 
@@ -19,6 +20,7 @@ const { width } = Dimensions.get("window");
 ========================= */
 
 export function UploadAadhaarCard() {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
 
@@ -28,13 +30,13 @@ export function UploadAadhaarCard() {
   return (
     <SafeAreaView style={styles_screen1.safeArea}>
       <View style={styles_screen1.header}>
-        <Text style={styles_screen1.heading}>Upload Aadhaar Card</Text>
+        <Text style={styles_screen1.heading}>{t('auth.uploadAadhaarCard')}</Text>
 
         <TouchableOpacity
           style={styles_screen1.skipButton}
           onPress={() => navigation.navigate("UploadProfilePicture", { role })}
         >
-          <Text style={styles_screen1.skipText}>Skip</Text>
+          <Text style={styles_screen1.skipText}>{t('common.skip')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -46,16 +48,12 @@ export function UploadAadhaarCard() {
         <Text style={styles_screen1.uploadIcon}>☁️↑</Text>
 
         <Text style={styles_screen1.uploadText}>
-          Upload a clear{"\n"}
-          document file of Aadhaar card
+          {t('auth.uploadAadhaarSubtitle')}
         </Text>
       </TouchableOpacity>
 
       <Text style={styles_screen1.disclaimer}>
-        By sharing your Aadhaar details, you confirm that you are doing so
-        willingly. You also agree that BharatWork can share your Aadhaar
-        information with relevant government authorities for verification
-        purposes.
+        {t('auth.aadhaarDisclaimer')}
       </Text>
 
       <TouchableOpacity
@@ -63,7 +61,7 @@ export function UploadAadhaarCard() {
         onPress={() => navigation.navigate("UploadAadhaarImages", { role })}
         activeOpacity={0.85}
       >
-        <Text style={styles_screen1.continueText}>Continue</Text>
+        <Text style={styles_screen1.continueText}>{t('common.continueBtn')}</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -74,6 +72,7 @@ export function UploadAadhaarCard() {
 ========================= */
 
 export function UploadAadhaarImages({ navigation }: any) {
+  const { t } = useTranslation();
   const route = useRoute<any>();
   const [frontImage, setFrontImage] = useState<string | null>(null);
   const [backImage, setBackImage] = useState<string | null>(null);
@@ -95,17 +94,17 @@ export function UploadAadhaarImages({ navigation }: any) {
     } catch (err: any) {
       // Latest package throws error with this code on cancel
       if (err?.code !== "DOCUMENT_PICKER_CANCELED") {
-        Alert.alert("Error", "Failed to pick image");
+        Alert.alert(t('common.error'), t('auth.failedToPickImage'));
       }
     }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Text style={styles.heading}>Upload Aadhaar Card</Text>
+      <Text style={styles.heading}>{t('auth.uploadAadhaarCard')}</Text>
 
       {/* FRONT */}
-      <Text style={styles.sectionTitle}>Front Side</Text>
+      <Text style={styles.sectionTitle}>{t('auth.frontSide')}</Text>
       <Image
         source={
           frontImage
@@ -120,11 +119,11 @@ export function UploadAadhaarImages({ navigation }: any) {
         style={styles.browseButton}
         onPress={() => pickImage("front")}
       >
-        <Text style={styles.browseText}>Browse</Text>
+        <Text style={styles.browseText}>{t('auth.browse')}</Text>
       </TouchableOpacity>
 
       {/* BACK */}
-      <Text style={styles.sectionTitle}>Back Side</Text>
+      <Text style={styles.sectionTitle}>{t('auth.backSide')}</Text>
       <Image
         source={
           backImage
@@ -139,7 +138,7 @@ export function UploadAadhaarImages({ navigation }: any) {
         style={styles.browseButton}
         onPress={() => pickImage("back")}
       >
-        <Text style={styles.browseText}>Browse</Text>
+        <Text style={styles.browseText}>{t('auth.browse')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -150,7 +149,7 @@ export function UploadAadhaarImages({ navigation }: any) {
         disabled={!(frontImage && backImage)}
         onPress={() => navigation.navigate("UploadProfilePicture", { role: (route.params as any)?.role })}
       >
-        <Text style={styles.continueText}>Continue</Text>
+        <Text style={styles.continueText}>{t('common.continueBtn')}</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );

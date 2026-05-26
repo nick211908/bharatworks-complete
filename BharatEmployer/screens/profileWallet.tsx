@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   View,
   Text,
@@ -11,19 +11,22 @@ import {
   Alert,
   TextInput,
   ActivityIndicator,
+  DeviceEventEmitter,
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 
 import api from '../lib/api'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useTranslation } from 'react-i18next'
 
 export default function ProfileWalletScreen() {
-  const [profile, setProfile] = React.useState<any>(null)
-  const [transactions, setTransactions] = React.useState<any[]>([])
-  const [amount, setAmount] = React.useState('')
-  const [loading, setLoading] = React.useState(false)
+  const { t, i18n } = useTranslation()
+  const [profile, setProfile] = useState<any>(null)
+  const [transactions, setTransactions] = useState<any[]>([])
+  const [amount, setAmount] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchProfile()
     fetchTransactions()
   }, [])
@@ -50,7 +53,7 @@ export default function ProfileWalletScreen() {
   const handleAddMoney = async () => {
     const numAmount = parseFloat(amount);
     if (!numAmount || numAmount <= 0) {
-      Alert.alert('Invalid Amount', 'Please enter a valid amount to add.');
+      Alert.alert(t('prof.invAmountTitle'), t('prof.invAmountMsg'));
       return;
     }
     try {
@@ -59,13 +62,13 @@ export default function ProfileWalletScreen() {
       const response = await api.post('/payment/wallet/add', { amount: numAmount });
       const order = response.data;
       Alert.alert(
-        '✅ Order Created!',
-        `Razorpay Order ID: ${order.orderId}\n\nAmount: ₹${numAmount}\n\nOpen your UPI app and pay to this order to top up your wallet.`,
+        t('prof.orderCreated'),
+        t('prof.orderMsg', { orderId: order.orderId, amount: numAmount }),
         [{ text: 'OK', onPress: () => { setAmount(''); fetchProfile(); } }]
       );
     } catch (err: any) {
       const msg = err?.response?.data?.error || err.message || 'Could not create order';
-      Alert.alert('Error', msg);
+      Alert.alert(t('auth.validationError'), msg);
     } finally {
       setLoading(false);
     }
@@ -74,6 +77,13 @@ export default function ProfileWalletScreen() {
   const handleLogout = async () => {
     await AsyncStorage.removeItem('userToken');
     await AsyncStorage.removeItem('userId');
+    DeviceEventEmitter.emit('AUTH_LOGOUT');
+  }
+
+  const toggleLanguage = async () => {
+    const newLang = i18n.language === 'en' ? 'hi' : 'en';
+    await i18n.changeLanguage(newLang);
+    await AsyncStorage.setItem('user-language', newLang);
   }
 
   return (
@@ -87,25 +97,25 @@ export default function ProfileWalletScreen() {
           />
 
           <View style={styles.userInfo}>
-            <Text style={styles.name}>{profile?.name || 'Employer'}</Text>
-            <Text style={styles.role}>Owner</Text>
-            <Text style={styles.location}>Ram Mandir, Colony</Text>
-            <Text style={styles.need}>Daily Need</Text>
+            <Text style={styles.name}>{profile?.name || t('home.greeting').split(' ')[1]}</Text>
+            <Text style={styles.role}>{t('prof.owner')}</Text>
+            <Text style={styles.location}>{t('prof.locationPlaceholder')}</Text>
+            <Text style={styles.need}>{t('prof.dailyNeed')}</Text>
           </View>
         </View>
 
         {/* BALANCE */}
         <View style={styles.balanceBox}>
           <Text style={styles.balance}>₹ {profile?.wallet_balance || '0'}</Text>
-          <Text style={styles.growth}>Available Balance</Text>
+          <Text style={styles.growth}>{t('prof.availableBalance')}</Text>
         </View>
 
         {/* ADD MONEY VIA RAZORPAY */}
         <View style={styles.addMoneyBox}>
-          <Text style={styles.addMoneyLabel}>Add Money to Wallet</Text>
+          <Text style={styles.addMoneyLabel}>{t('prof.addMoney')}</Text>
           <TextInput
             style={styles.amountInput}
-            placeholder="Enter amount (₹)"
+            placeholder={t('prof.enterAmount')}
             placeholderTextColor="#999"
             keyboardType="numeric"
             value={amount}
@@ -120,7 +130,7 @@ export default function ProfileWalletScreen() {
               ? <ActivityIndicator color="#FFF" />
               : <>
                 <Icon name="card-outline" size={20} color="#FFF" />
-                <Text style={styles.upiButtonText}>Add Money via Razorpay</Text>
+                <Text style={styles.upiButtonText}>{t('prof.addViaRazorpay')}</Text>
               </>
             }
           </TouchableOpacity>
@@ -128,9 +138,9 @@ export default function ProfileWalletScreen() {
 
         {/* TRANSACTIONS */}
         <View style={styles.txHeader}>
-          <Text style={styles.sectionTitle}>Transactions</Text>
+          <Text style={styles.sectionTitle}>{t('prof.transactions')}</Text>
           <TouchableOpacity>
-            <Text style={styles.seeAll}>See All</Text>
+            <Text style={styles.seeAll}>{t('prof.seeAll')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -143,38 +153,41 @@ export default function ProfileWalletScreen() {
                 time={new Date(tx.created_at).toLocaleString()}
                 amount={`${tx.type === 'credit' ? '+' : '-'}₹${tx.amount}`}
                 positive={tx.type === 'credit'}
+                t={t}
               />
             ))
           ) : (
-            <Text style={styles.noTxText}>No transactions yet</Text>
+            <Text style={styles.noTxText}>{t('prof.noTransactions')}</Text>
           )}
         </View>
 
         {/* SETTINGS */}
-        <Text style={styles.sectionTitle}>Settings</Text>
+        <Text style={styles.sectionTitle}>{t('prof.settings')}</Text>
 
         <View style={styles.settingsCard}>
-          <SettingRow
-            icon="globe-outline"
-            label="Language"
-            right={<LanguagePill />}
-          />
+          <TouchableOpacity onPress={toggleLanguage}>
+            <SettingRow
+              icon="globe-outline"
+              label={t('common.language')}
+              right={<LanguagePill currentLang={i18n.language} />}
+            />
+          </TouchableOpacity>
 
           <SettingRow
             icon="notifications-outline"
-            label="Notifications"
+            label={t('prof.notifications')}
             right={<Switch />}
           />
 
           <SettingRow
             icon="help-circle-outline"
-            label="Help & Support"
+            label={t('prof.helpSupport')}
             arrow
           />
 
           <SettingRow
             icon="settings-outline"
-            label="Account Settings"
+            label={t('prof.accountSettings')}
             arrow
           />
         </View>
@@ -182,7 +195,7 @@ export default function ProfileWalletScreen() {
         {/* LOGOUT */}
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Icon name="log-out-outline" size={18} color="#1E2C63" />
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={styles.logoutText}>{t('prof.logout')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -191,7 +204,7 @@ export default function ProfileWalletScreen() {
 
 /* ================= COMPONENTS ================= */
 
-function Transaction({ type, time, amount, positive }: any) {
+function Transaction({ type, time, amount, positive, t }: any) {
   return (
     <View style={styles.txRow}>
       <View style={styles.txLeft}>
@@ -216,7 +229,7 @@ function Transaction({ type, time, amount, positive }: any) {
 
       <View style={{ alignItems: 'flex-end' }}>
         <Text style={styles.txAmount}>{amount}</Text>
-        <Text style={styles.txMeta}>{positive ? 'Deposit' : 'Send'}</Text>
+        <Text style={styles.txMeta}>{positive ? t('prof.deposit') : t('prof.send')}</Text>
       </View>
     </View>
   )
@@ -236,12 +249,12 @@ function SettingRow({ icon, label, right, arrow }: any) {
   )
 }
 
-function LanguagePill() {
+function LanguagePill({ currentLang }: { currentLang: string }) {
   return (
     <View style={styles.langPill}>
-      <Text style={styles.langText}>English</Text>
+      <Text style={[styles.langText, currentLang === 'en' && { fontWeight: 'bold', color: '#FF9F1C' }]}>{t('common.english')}</Text>
       <Text style={styles.langDivider}>|</Text>
-      <Text style={styles.langText}>हिंदी</Text>
+      <Text style={[styles.langText, currentLang === 'hi' && { fontWeight: 'bold', color: '#FF9F1C' }]}>{t('common.hindi')}</Text>
     </View>
   )
 }

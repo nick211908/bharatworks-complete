@@ -9,45 +9,43 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import styles from "../../assets/css/OnboardingScreen";
+import { useTranslation } from "react-i18next";
 
 const { width } = Dimensions.get("window");
 
-const slides = [
-  {
-    id: "1",
-    image: require("../../assets/images/onboard1.jpg"),
-    title: "Search Your dream\njob fast and ease",
-    subtitle:
-      "We help you find your dream job based on your skillset, location, demand.",
-  },
-  {
-    id: "2",
-    image: require("../../assets/images/onboard2.png"),
-    title: "Apply for jobs\nin one click",
-    subtitle:
-      "Find thousands of job opportunities and apply instantly with ease.",
-  },
-  {
-    id: "3",
-    image: require("../../assets/images/onboard3.jpg"),
-    title: "Get hired\nquickly",
-    subtitle:
-      "Connect with top companies and get hired faster than ever.",
-  },
-  {
-    id: "4",
-    image: require("../../assets/images/onboard4.png"),
-    title: "Search Your dream\njob fast and ease",
-    subtitle:
-      "We help you find your dream job based on your skillset, location, demand.",
-    isFinal: true,
-  },
-];
-
 export default function OnboardingScreen() {
-  const navigation = useNavigation<any>(); // ✅ CORRECT PLACE
+  const { t } = useTranslation();
+  const navigation = useNavigation<any>();
   const flatListRef = useRef<FlatList>(null);
   const [index, setIndex] = useState(0);
+
+  const slides = [
+    {
+      id: "1",
+      image: require("../../assets/images/onboard1.jpg"),
+      title: t('onboarding.slide1Title'),
+      subtitle: t('onboarding.slide1Subtitle'),
+    },
+    {
+      id: "2",
+      image: require("../../assets/images/onboard2.png"),
+      title: t('onboarding.slide2Title'),
+      subtitle: t('onboarding.slide2Subtitle'),
+    },
+    {
+      id: "3",
+      image: require("../../assets/images/onboard3.jpg"),
+      title: t('onboarding.slide3Title'),
+      subtitle: t('onboarding.slide3Subtitle'),
+    },
+    {
+      id: "4",
+      image: require("../../assets/images/onboard4.png"),
+      title: t('onboarding.slide1Title'),
+      subtitle: t('onboarding.slide1Subtitle'),
+      isFinal: true,
+    },
+  ];
 
   const goToIndex = (i: number) => {
     flatListRef.current?.scrollToIndex({ index: i, animated: true });
@@ -97,21 +95,21 @@ export default function OnboardingScreen() {
           style={styles.registerButton}
           onPress={handleRegister}
         >
-          <Text style={styles.registerText}>REGISTER</Text>
+          <Text style={styles.registerText}>{t('onboarding.register')}</Text>
         </TouchableOpacity>
       ) : (
         <View style={styles.bottomBar}>
           <TouchableOpacity
             onPress={handleSkip}
           >
-            <Text style={styles.skipText}>Skip</Text>
+            <Text style={styles.skipText}>{t('common.skip')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.nextButton}
             onPress={handleNext}
           >
-            <Text style={styles.nextText}>Next</Text>
+            <Text style={styles.nextText}>{t('common.next')}</Text>
           </TouchableOpacity>
         </View>
       )}

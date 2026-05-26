@@ -7,8 +7,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { AuthService } from '../../services/AuthService';
-import api from '../../services/api';
-import { t } from '../../utils/i18n';
+import { useTranslation } from 'react-i18next';
 
 // Components
 import {
@@ -26,6 +25,7 @@ import {
 import { PasswordSetupView } from './components/PasswordSetupView';
 
 export function MobileVerification() {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
 
@@ -34,7 +34,6 @@ export function MobileVerification() {
 
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
-  const [lang, setLang] = useState<'en' | 'hi'>('en');
   const [showPasswordSetup, setShowPasswordSetup] = useState(false);
   const [verifiedUserId, setVerifiedUserId] = useState<string | null>(null);
 
@@ -51,7 +50,7 @@ export function MobileVerification() {
     const enteredOtp = otp.join('');
 
     if (enteredOtp.length !== 6) {
-      Alert.alert('Invalid OTP', t('invalidOtp'));
+      Alert.alert(t('common.error'), t('auth.invalidOtp'));
       return;
     }
 
@@ -72,9 +71,9 @@ export function MobileVerification() {
       }
     } catch (error: any) {
       const errorMessage = isEmailMode
-        ? t('emailVerificationFailed')
-        : t('phoneVerificationFailed');
-      Alert.alert('Verification Failed', error?.message || errorMessage);
+        ? t('auth.emailVerificationFailed')
+        : t('auth.phoneVerificationFailed');
+      Alert.alert(t('common.failed'), error?.message || errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -110,16 +109,16 @@ export function MobileVerification() {
   // OTP Verification screen
   return (
     <View style={styles.container}>
-      <LanguageToggle lang={lang} onToggle={setLang} />
+      <LanguageToggle />
 
       <Logo size="large" />
 
-      <Text style={styles.title}>{t('verificationTitle')}</Text>
+      <Text style={styles.title}>{t('auth.verificationTitle')}</Text>
 
       <Text style={styles.subtitle}>
         {isEmailMode
-          ? `${t('verifyEmailContent')} ${email}`
-          : `${t('verifyPhoneContent')} ${phone}`}
+          ? `${t('auth.verifyEmailContent')} ${email}`
+          : `${t('auth.verifyPhoneContent')} ${phone}`}
       </Text>
 
       <DevModeHint />
@@ -131,7 +130,7 @@ export function MobileVerification() {
       />
 
       <Button
-        title={t('continueBtn')}
+        title={t('auth.continueBtn')}
         onPress={handleVerify}
         loading={isLoading}
         disabled={isLoading}
@@ -142,17 +141,17 @@ export function MobileVerification() {
 
 // Phone number entry screen
 export function PhoneNumberEntry() {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
 
   const { role, source, nextRoute } = route.params || {};
   const [phone, setPhone] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [lang, setLang] = useState<'en' | 'hi'>('en');
 
   const handleSubmit = async () => {
     if (phone.length !== 10) {
-      Alert.alert('Invalid Phone Number', t('invalidPhone'));
+      Alert.alert(t('common.error'), t('auth.invalidPhone'));
       return;
     }
 
@@ -166,7 +165,7 @@ export function PhoneNumberEntry() {
         nextRoute,
       });
     } catch (error: any) {
-      Alert.alert('Failed to Send OTP', error.message);
+      Alert.alert(t('common.failed'), error.message);
     } finally {
       setIsLoading(false);
     }
@@ -174,16 +173,16 @@ export function PhoneNumberEntry() {
 
   return (
     <View style={styles.container}>
-      <LanguageToggle lang={lang} onToggle={setLang} />
+      <LanguageToggle />
 
       <Logo size="large" />
 
       <Text style={styles.title}>
-        {source === 'Login' ? t('loginWithPhone') : t('verifyPhone')}
+        {source === 'Login' ? t('auth.loginWithPhone') : t('auth.verifyPhone')}
       </Text>
 
       <Text style={styles.subtitle}>
-        {source === 'Login' ? t('sendOtpDescLogin') : t('sendOtpDescVerify')}
+        {source === 'Login' ? t('auth.sendOtpDescLogin') : t('auth.sendOtpDescVerify')}
       </Text>
 
       <View style={styles.form}>
@@ -193,7 +192,7 @@ export function PhoneNumberEntry() {
         />
 
         <Button
-          title={isLoading ? t('sendingOtp') : t('sendOtp')}
+          title={isLoading ? t('auth.sendingOtp') : t('auth.sendOtp')}
           onPress={handleSubmit}
           loading={isLoading}
           disabled={isLoading}

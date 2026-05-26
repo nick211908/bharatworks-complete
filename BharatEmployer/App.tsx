@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
+import './i18n';
 import { View, Text, DeviceEventEmitter } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
@@ -82,7 +83,7 @@ export default function App() {
   if (authState === 'loading') {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Loading...</Text>
+        <Text>BharatWorks...</Text>
       </View>
     )
   }

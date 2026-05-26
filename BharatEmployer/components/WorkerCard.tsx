@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, Text, Image, StyleSheet } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 interface WorkerCardProps {
     name?: string
@@ -9,11 +10,15 @@ interface WorkerCardProps {
 }
 
 export default function WorkerCard({
-    name = 'Mamta',
-    role = 'Mistri',
-    price = '₹ 800/- Day',
+    name,
+    role,
+    price,
     imageUri = 'https://i.pravatar.cc/150?img=12'
 }: WorkerCardProps) {
+    const { t } = useTranslation()
+    const finalName = name || 'Mamta'
+    const finalRole = role || t('home.workerRole')
+    const finalPrice = price || `₹ 800${t('home.perDay')}`
     return (
         <View style={styles.card}>
             <View style={styles.cardCurve} />
@@ -23,9 +28,9 @@ export default function WorkerCard({
                 style={styles.cardAvatar}
             />
 
-            <Text style={styles.cardName}>{name}</Text>
-            <Text style={styles.cardRole}>{role}</Text>
-            <Text style={styles.cardPrice}>{price}</Text>
+            <Text style={styles.cardName}>{finalName}</Text>
+            <Text style={styles.cardRole}>{finalRole}</Text>
+            <Text style={styles.cardPrice}>{finalPrice}</Text>
         </View>
     )
 }

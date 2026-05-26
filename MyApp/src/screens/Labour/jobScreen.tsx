@@ -1,7 +1,4 @@
 import React from 'react';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
   View,
   Text,
@@ -20,6 +17,9 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { JobService } from '../../services/JobService';
 import { registerFcmToken, onForegroundJobAlert, JobAlertData } from '../../services/FCMService';
 import Geolocation from 'react-native-geolocation-service';
+import { useTranslation } from 'react-i18next';
+import Feather from 'react-native-vector-icons/Feather';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 /* =======================
    DESIGN TOKENS
@@ -39,6 +39,7 @@ const COLORS = {
    MAIN SCREEN
 ======================= */
 const LabourAllJobs: React.FC = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const [jobs, setJobs] = React.useState<any[]>([]);
   const [search, setSearch] = React.useState("");
@@ -97,7 +98,7 @@ const LabourAllJobs: React.FC = () => {
 
     } catch (error) {
       console.error("Error fetching jobs:", error);
-      setErrorMessage("Unable to load jobs right now. Please try again.");
+      setErrorMessage(t('labour.unableToLoadJobs'));
     } finally {
       setLoading(false);
     }
@@ -124,11 +125,11 @@ const LabourAllJobs: React.FC = () => {
 
       <ScrollView contentContainerStyle={styles.container}>
         {/* Header */}
-        <Text style={styles.title}>Available Jobs</Text>
+        <Text style={styles.title}>{t('labour.availableJobs')}</Text>
 
         {/* Search */}
         <TextInput
-          placeholder="Search jobs..."
+          placeholder={t('labour.searchJobs')}
           placeholderTextColor={COLORS.muted}
           style={styles.search}
           value={search}
@@ -137,13 +138,13 @@ const LabourAllJobs: React.FC = () => {
 
         {/* Filter / Sort */}
         <View style={styles.actionsRow}>
-          <ActionButton label="Filter" icon={<Feather name="filter" size={16} color={COLORS.textPrimary} />} />
-          <ActionButton label="Sort" icon={<FontAwesome5 name="sort" size={16} color={COLORS.textPrimary} />} />
+          <ActionButton label={t('labour.filter')} icon={<Feather name="filter" size={16} color={COLORS.textPrimary} />} />
+          <ActionButton label={t('labour.sort')} icon={<FontAwesome5 name="sort" size={16} color={COLORS.textPrimary} />} />
         </View>
 
         {/* Job Cards */}
         {loading ? (
-          <Text style={{ textAlign: 'center', color: COLORS.muted, marginTop: 20 }}>Finding jobs near you...</Text>
+          <Text style={{ textAlign: 'center', color: COLORS.muted, marginTop: 20 }}>{t('labour.findingJobsNearYou')}</Text>
         ) : errorMessage ? (
           <Text style={{ textAlign: 'center', color: COLORS.muted, marginTop: 20 }}>
             {errorMessage}
@@ -153,17 +154,17 @@ const LabourAllJobs: React.FC = () => {
             <JobCard
               key={job.id}
               title={job.title}
-              company={job.employers?.company_name || job.company_name || "Hiring Employer"}
+              company={job.employers?.company_name || job.company_name || t('labour.hiringEmployer')}
               rating="4.2"
-              pay={`₹${job.wage_per_day}/day`}
-              distance={job.distance_meters ? `${(job.distance_meters / 1000).toFixed(1)} km` : "Unknown distance"}
+              pay={`₹${job.wage_per_day}${t('labour.perDay')}`}
+              distance={job.distance_meters ? t('labour.distance', { count: (job.distance_meters / 1000).toFixed(1) }) : t('labour.unknownDistance')}
               urgent={job.status === 'OPEN'}
               onPress={() => navigation.navigate('LabourJobApply', { job })}
             />
           ))
         ) : (
           <Text style={{ textAlign: 'center', color: COLORS.muted, marginTop: 20 }}>
-            {jobs.length === 0 ? "No jobs available right now." : "No jobs found matching your search."}
+            {jobs.length === 0 ? t('labour.noJobsAvailable') : t('labour.noJobsMatchSearch')}
           </Text>
         )}
       </ScrollView>
@@ -173,9 +174,6 @@ const LabourAllJobs: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-import Feather from 'react-native-vector-icons/Feather';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 /* =======================
    COMPONENTS
@@ -193,9 +191,6 @@ const ActionButton = ({
     <Text style={styles.actionText}>{label}</Text>
   </TouchableOpacity>
 );
-
-
-
 
 /* =======================
    STYLES
@@ -248,8 +243,6 @@ const styles = StyleSheet.create({
   actionText: {
     fontWeight: '500',
   },
-
-
 });
 
 export default LabourAllJobs;

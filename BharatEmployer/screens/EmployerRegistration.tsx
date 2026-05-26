@@ -16,9 +16,11 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import api from '../lib/api'
 import PrimaryButton from '../components/PrimaryButton'
+import { useTranslation } from 'react-i18next'
 
 export default function EmployerRegistration() {
     const navigation = useNavigation<any>()
+    const { t } = useTranslation()
     const [loading, setLoading] = useState(false)
     const [userId, setUserId] = useState<string | null>(null)
 
@@ -44,29 +46,29 @@ export default function EmployerRegistration() {
 
     const handleContinue = async () => {
         if (!companyName.trim()) {
-            Alert.alert('Validation Error', 'Please enter company/business name')
+            Alert.alert(t('auth.validationError'), t('reg.valEnterCompanyName'))
             return
         }
 
         if (!billingAddress.trim()) {
-            Alert.alert('Validation Error', 'Please enter billing address')
+            Alert.alert(t('auth.validationError'), t('reg.valEnterAddress'))
             return
         }
 
         if (!phone.trim()) {
-            Alert.alert('Validation Error', 'Please enter phone number')
+            Alert.alert(t('auth.validationError'), t('reg.valEnterPhone'))
             return
         }
 
         if (employerType !== 'individual') {
             if (!bankName.trim() || !accountNumber.trim() || !ifscCode.trim()) {
-                Alert.alert('Validation Error', 'Please fill all banking details')
+                Alert.alert(t('auth.validationError'), t('reg.valFillBank'))
                 return
             }
         }
 
         if (!userId) {
-            Alert.alert('Error', 'User not found. Please log in again.')
+            Alert.alert(t('auth.validationError'), t('reg.errUserNotFound'))
             return
         }
 
@@ -82,9 +84,9 @@ export default function EmployerRegistration() {
 
             await AsyncStorage.setItem('employerProfileComplete', 'true')
 
-            Alert.alert('Success', 'Employer profile created successfully!', [
+            Alert.alert(t('reg.successTitle'), t('reg.profileCreated'), [
                 {
-                    text: 'OK',
+                    text: t('common.ok'),
                     onPress: () => {
                         DeviceEventEmitter.emit('AUTH_PROFILE_COMPLETE')
                     },
@@ -94,11 +96,11 @@ export default function EmployerRegistration() {
             console.error(err)
             if (err.response?.status === 400 || err.response?.data?.error?.includes('exists')) {
                 await AsyncStorage.setItem('employerProfileComplete', 'true')
-                Alert.alert('Already Registered', 'Your employer profile already exists.', [
-                    { text: 'OK', onPress: () => DeviceEventEmitter.emit('AUTH_PROFILE_COMPLETE') }
+                Alert.alert(t('reg.alreadyRegistered'), t('reg.profileExists'), [
+                    { text: t('common.ok'), onPress: () => DeviceEventEmitter.emit('AUTH_PROFILE_COMPLETE') }
                 ])
             } else {
-                Alert.alert('Error', err.response?.data?.error || err.message || 'Failed to register employer')
+                Alert.alert(t('auth.validationError'), err.response?.data?.error || err.message || t('reg.errRegisterFailed'))
             }
         } finally {
             setLoading(false)
@@ -110,11 +112,11 @@ export default function EmployerRegistration() {
             <StatusBar barStyle="dark-content" backgroundColor="#FFFDF8" />
 
             <View style={styles.header}>
-                <Text style={styles.title}>Complete Profile</Text>
+                <Text style={styles.title}>{t('reg.completeProfile')}</Text>
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                <Text style={styles.label}>Employer Type</Text>
+                <Text style={styles.label}>{t('reg.employerType')}</Text>
                 <View style={styles.typeContainer}>
                     {(['individual', 'company', 'contractor'] as const).map((type) => (
                         <TouchableOpacity
@@ -129,33 +131,33 @@ export default function EmployerRegistration() {
                                 styles.typeText,
                                 employerType === type && styles.activeTypeText
                             ]}>
-                                {type.charAt(0).toUpperCase() + type.slice(1)}
+                                {t(`reg.${type}`)}
                             </Text>
                         </TouchableOpacity>
                     ))}
                 </View>
 
-                <Text style={styles.label}>Company / Business Name</Text>
+                <Text style={styles.label}>{t('reg.companyNameLabel')}</Text>
                 <TextInput
                     style={styles.input}
-                    placeholder="Enter name"
+                    placeholder={t('reg.placeholderName')}
                     value={companyName}
                     onChangeText={setCompanyName}
                 />
 
-                <Text style={styles.label}>Billing Address</Text>
+                <Text style={styles.label}>{t('reg.billingAddress')}</Text>
                 <TextInput
                     style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
-                    placeholder="Enter full address"
+                    placeholder={t('reg.placeholderAddress')}
                     multiline
                     value={billingAddress}
                     onChangeText={setBillingAddress}
                 />
 
-                <Text style={styles.label}>Phone Number</Text>
+                <Text style={styles.label}>{t('reg.phone')}</Text>
                 <TextInput
                     style={styles.input}
-                    placeholder="+91 9876543210"
+                    placeholder={t('reg.placeholderPhone')}
                     keyboardType="phone-pad"
                     value={phone}
                     onChangeText={setPhone}
@@ -163,29 +165,29 @@ export default function EmployerRegistration() {
 
                 {employerType !== 'individual' && (
                     <>
-                        <Text style={styles.sectionHeader}>Bank Details</Text>
+                        <Text style={styles.sectionHeader}>{t('reg.bankDetails')}</Text>
 
-                        <Text style={styles.label}>Bank Name</Text>
+                        <Text style={styles.label}>{t('reg.bankName')}</Text>
                         <TextInput
                             style={styles.input}
-                            placeholder="HDFC Bank"
+                            placeholder={t('reg.placeholderBank')}
                             value={bankName}
                             onChangeText={setBankName}
                         />
 
-                        <Text style={styles.label}>Account Number</Text>
+                        <Text style={styles.label}>{t('reg.accountNumber')}</Text>
                         <TextInput
                             style={styles.input}
-                            placeholder="1234567890"
+                            placeholder={t('reg.placeholderAccount')}
                             keyboardType="numeric"
                             value={accountNumber}
                             onChangeText={setAccountNumber}
                         />
 
-                        <Text style={styles.label}>IFSC Code</Text>
+                        <Text style={styles.label}>{t('reg.ifscCode')}</Text>
                         <TextInput
                             style={styles.input}
-                            placeholder="HDFC0001234"
+                            placeholder={t('reg.placeholderIfsc')}
                             autoCapitalize="characters"
                             value={ifscCode}
                             onChangeText={setIfscCode}
@@ -194,7 +196,7 @@ export default function EmployerRegistration() {
                 )}
 
                 <PrimaryButton
-                    title={loading ? "Saving..." : "Save & Continue"}
+                    title={loading ? t('reg.saving') : t('reg.saveContinue')}
                     onPress={handleContinue}
                     style={{ marginTop: 30, marginBottom: 40 }}
                     disabled={loading}

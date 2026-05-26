@@ -14,8 +14,10 @@ import api from '../../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from 'react-native-geolocation-service';
 import { PermissionsAndroid } from 'react-native';
+import { useTranslation } from "react-i18next";
 
 export default function PersonalDetailEntry() {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { role } = route.params || {};
@@ -54,7 +56,7 @@ export default function PersonalDetailEntry() {
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
         );
         if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          Alert.alert("Permission Denied", "Location permission is required.");
+          Alert.alert(t('auth.locationPermissionDenied'), t('auth.locationPermissionRequired'));
           setLocationStatus('error');
           return;
         }
@@ -69,7 +71,7 @@ export default function PersonalDetailEntry() {
         (error) => {
           console.error(error.code, error.message);
           setLocationStatus('error');
-          Alert.alert("Location Error", "Could not fetch location.");
+          Alert.alert(t('auth.locationError'), t('auth.couldNotFetchLocation'));
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
       );
@@ -119,7 +121,7 @@ export default function PersonalDetailEntry() {
       }
 
     } catch (error: any) {
-      Alert.alert("Error saving details", error.response?.data?.error || error.message);
+      Alert.alert(t('auth.errorSavingDetails'), error.response?.data?.error || error.message);
     }
   };
 
@@ -133,46 +135,48 @@ export default function PersonalDetailEntry() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Register Yourself!</Text>
+      <Text style={styles.heading}>{t('auth.registerYourself')}</Text>
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Personal Details</Text>
+        <Text style={styles.sectionTitle}>{t('auth.personalDetails')}</Text>
         <TouchableOpacity onPress={handleSkip}>
-          <Text style={styles.skipText}>Skip</Text>
+          <Text style={styles.skipText}>{t('common.skip')}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Name */}
-      <Text style={styles.label}>Name</Text>
+      <Text style={styles.label}>{t('auth.name')}</Text>
       <TextInput
         style={styles.input}
-        placeholder="Enter your name"
+        placeholder={t('auth.enterName')}
         placeholderTextColor="#777"
         value={name}
         onChangeText={setName}
       />
 
       {/* Gender */}
-      <Text style={styles.label}>Gender</Text>
+      <Text style={styles.label}>{t('auth.gender')}</Text>
       <View style={styles.dropdown}>
-        <TouchableOpacity onPress={() => setGender("Male")}>
-          <Text style={styles.dropdownText}>{gender || "Select"}</Text>
+        <TouchableOpacity onPress={() => setGender(gender === "" ? "Male" : "")}>
+          <Text style={styles.dropdownText}>
+            {gender ? (gender === "Male" ? t('auth.male') : t('auth.female')) : t('auth.select')}
+          </Text>
         </TouchableOpacity>
       </View>
 
       {gender === "" && (
         <View style={styles.genderOptions}>
           <TouchableOpacity onPress={() => setGender("Male")}>
-            <Text style={styles.optionText}>Male</Text>
+            <Text style={styles.optionText}>{t('auth.male')}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setGender("Female")}>
-            <Text style={styles.optionText}>Female</Text>
+            <Text style={styles.optionText}>{t('auth.female')}</Text>
           </TouchableOpacity>
         </View>
       )}
 
       {/* Date of Birth */}
-      <Text style={styles.label}>Date of Birth</Text>
+      <Text style={styles.label}>{t('auth.dob')}</Text>
       <TouchableOpacity
         style={styles.dropdown}
         onPress={() => setShowDatePicker(true)}
@@ -195,35 +199,35 @@ export default function PersonalDetailEntry() {
       {/* Worker or Agent Conditional Fields */}
       {isWorker ? (
         <>
-          <Text style={styles.label}>Pincode</Text>
+          <Text style={styles.label}>{t('auth.pincode')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter Your Pincode"
+            placeholder={t('auth.enterPincode')}
             keyboardType="number-pad"
             maxLength={6}
             value={pincode}
             onChangeText={setPincode}
           />
 
-          <Text style={styles.label}>Location</Text>
+          <Text style={styles.label}>{t('auth.location')}</Text>
           <TouchableOpacity
             style={[styles.locationButton, locationStatus === 'success' && styles.locationSuccess]}
             onPress={detectLocation}
           >
             <Text style={styles.locationButtonText}>
-              {locationStatus === 'loading' ? 'Detecting...' :
-                locationStatus === 'success' ? '📍 Location Detected' :
-                  '📍 Detect Current Location'}
+              {locationStatus === 'loading' ? t('auth.detecting') :
+                locationStatus === 'success' ? t('auth.locationDetected') :
+                  t('auth.detectLocation')}
             </Text>
           </TouchableOpacity>
           {locationStatus === 'error' && (
-            <Text style={styles.errorText}>Could not detect location. Please try again.</Text>
+            <Text style={styles.errorText}>{t('auth.couldNotFetchLocation')}</Text>
           )}
 
-          <Text style={styles.label}>Aadhaar Card No.</Text>
+          <Text style={styles.label}>{t('auth.aadhaarCardNo')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter Your Aadhaar Card No."
+            placeholder={t('auth.enterAadhaar')}
             value={aadhaarCardNo}
             onChangeText={setAadhaarCardNo}
             keyboardType="numeric"
@@ -232,11 +236,15 @@ export default function PersonalDetailEntry() {
         </>
       ) : (
         <>
-          <Text style={styles.label}>Occupation</Text>
+          <Text style={styles.label}>{t('auth.occupation')}</Text>
           <View style={styles.dropdown}>
-            <TouchableOpacity onPress={() => setOccupation("Govt Employed")}>
+            <TouchableOpacity onPress={() => setOccupation(occupation === "" ? "Govt Employed" : "")}>
               <Text style={styles.dropdownText}>
-                {occupation || "Select"}
+                {occupation ? (
+                  occupation === "Govt Employed" ? t('auth.govtEmployed') :
+                  occupation === "Private Sector" ? t('auth.privateSector') :
+                  t('auth.other')
+                ) : t('auth.select')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -244,29 +252,29 @@ export default function PersonalDetailEntry() {
           {occupation === "" && (
             <View style={styles.genderOptions}>
               <TouchableOpacity onPress={() => setOccupation("Govt Employed")}>
-                <Text style={styles.optionText}>Govt Employed</Text>
+                <Text style={styles.optionText}>{t('auth.govtEmployed')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setOccupation("Private Sector")}>
-                <Text style={styles.optionText}>Private Sector</Text>
+                <Text style={styles.optionText}>{t('auth.privateSector')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setOccupation("Other")}>
-                <Text style={styles.optionText}>Other</Text>
+                <Text style={styles.optionText}>{t('auth.other')}</Text>
               </TouchableOpacity>
             </View>
           )}
 
-          <Text style={styles.label}>Address</Text>
+          <Text style={styles.label}>{t('auth.address')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter Your Address"
+            placeholder={t('auth.enterAddress')}
             value={address}
             onChangeText={setAddress}
           />
 
-          <Text style={styles.label}>Aadhaar Card No.</Text>
+          <Text style={styles.label}>{t('auth.aadhaarCardNo')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter Your Aadhaar Card No."
+            placeholder={t('auth.enterAadhaar')}
             value={aadhaarCardNo}
             onChangeText={setAadhaarCardNo}
           />
@@ -274,7 +282,7 @@ export default function PersonalDetailEntry() {
       )}
 
       <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-        <Text style={styles.nextText}>Next</Text>
+        <Text style={styles.nextText}>{t('common.next')}</Text>
       </TouchableOpacity>
     </View>
   );

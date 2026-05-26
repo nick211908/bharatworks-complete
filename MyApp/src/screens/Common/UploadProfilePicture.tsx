@@ -12,11 +12,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import api from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 
 const { width } = Dimensions.get('window');
 
 export function UploadProfilePicture() {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const route = useRoute();
 
@@ -34,7 +36,7 @@ export function UploadProfilePicture() {
     if (result.assets && result.assets.length > 0) {
       setImageUri(result.assets[0].uri || null);
     } else {
-      Alert.alert('Error', 'Unable to capture image');
+      Alert.alert(t('common.error'), t('auth.unableToCapture'));
     }
   };
 
@@ -49,7 +51,7 @@ export function UploadProfilePicture() {
     if (result.assets && result.assets.length > 0) {
       setImageUri(result.assets[0].uri || null);
     } else {
-      Alert.alert('Error', 'Unable to select image');
+      Alert.alert(t('common.error'), t('auth.unableToSelect'));
     }
   };
 
@@ -65,13 +67,13 @@ export function UploadProfilePicture() {
       navigation.replace('LabourProfile');
 
     } catch (error: any) {
-      Alert.alert("Error saving profile", error.response?.data?.error || error.message);
+      Alert.alert(t('auth.errorSavingProfile'), error.response?.data?.error || error.message);
     }
   };
 
   const handleSave = () => {
     if (!imageUri) {
-      Alert.alert('No image selected');
+      Alert.alert(t('auth.noImageSelected'));
       return;
     }
     saveProfile(false);
@@ -85,7 +87,7 @@ export function UploadProfilePicture() {
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* TITLE */}
-      <Text style={styles.heading}>Upload a Picture</Text>
+      <Text style={styles.heading}>{t('auth.uploadPicture')}</Text>
 
       {/* PROFILE IMAGE */}
       <View style={styles.avatarWrapper}>
@@ -104,7 +106,7 @@ export function UploadProfilePicture() {
           style={styles.saveButton}
           onPress={handleSave}
         >
-          <Text style={styles.saveText}>Save</Text>
+          <Text style={styles.saveText}>{t('common.save')}</Text>
         </TouchableOpacity>
       )}
 
@@ -113,7 +115,7 @@ export function UploadProfilePicture() {
         style={styles.continueButton}
         onPress={handleContinue}
       >
-        <Text style={styles.continueText}>Continue</Text>
+        <Text style={styles.continueText}>{t('common.continueBtn')}</Text>
       </TouchableOpacity>
 
       {/* ACTION BUTTONS */}
@@ -122,14 +124,14 @@ export function UploadProfilePicture() {
           style={styles.actionButton}
           onPress={takePhoto}
         >
-          <Text style={styles.actionText}>Take a Photo</Text>
+          <Text style={styles.actionText}>{t('auth.takePhoto')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.actionButton}
           onPress={pickFromGallery}
         >
-          <Text style={styles.actionText}>Upload From Gallery</Text>
+          <Text style={styles.actionText}>{t('auth.uploadFromGallery')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

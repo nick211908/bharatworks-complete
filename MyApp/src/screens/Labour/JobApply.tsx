@@ -17,18 +17,10 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { JobService } from '../../services/JobService';
 import LabourBottomNav from '../../components/LabourBottomNav';
-/* =======================
-   DESIGN TOKENS
-   ======================= */
-
-
-/* =======================
-   TYPES & MOCK DATA
-   ======================= */
-
-
+import { useTranslation } from 'react-i18next';
 
 const LabourJobApply: React.FC = () => {
+    const { t } = useTranslation();
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
     const [applying, setApplying] = useState(false);
@@ -55,25 +47,23 @@ const LabourJobApply: React.FC = () => {
         loadFullJob();
     }, [route.params?.job?.id]);
 
-
-
     const handleApply = async () => {
         if (!jobData?.id) {
-            Alert.alert('Error', 'Job ID missing, cannot apply.');
+            Alert.alert(t('common.error'), 'Job ID missing, cannot apply.');
             return;
         }
         if (applied) {
-            Alert.alert('Already Applied', 'You have already applied for this job.');
+            Alert.alert(t('labour.alreadyApplied'), t('labour.alreadyAppliedMsg'));
             return;
         }
         try {
             setApplying(true);
             await JobService.applyForJob(jobData.id, '');
             setApplied(true);
-            Alert.alert('Success! 🎉', 'You have successfully applied for this job. The employer will contact you shortly.');
+            Alert.alert(t('labour.applySuccessTitle'), t('labour.applySuccessMsg'));
         } catch (err: any) {
-            const msg = err?.response?.data?.error || err.message || 'Failed to apply';
-            Alert.alert('Error', msg);
+            const msg = err?.response?.data?.error || err.message || t('common.failed');
+            Alert.alert(t('common.error'), msg);
         } finally {
             setApplying(false);
         }
@@ -87,7 +77,7 @@ const LabourJobApply: React.FC = () => {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <Feather name="arrow-left" size={20} color={COLORS.textPrimary} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Job Details</Text>
+                    <Text style={styles.headerTitle}>{t('labour.jobDetails')}</Text>
                     <View style={{ width: 40 }} />
                 </View>
 
@@ -99,13 +89,13 @@ const LabourJobApply: React.FC = () => {
                     <View style={styles.card}>
                         <View style={styles.jobHeadingRow}>
                             <View style={styles.titleContainer}>
-                                <Text style={styles.jobTitle}>{jobData.title || 'Job Details'}</Text>
+                                <Text style={styles.jobTitle}>{jobData.title || t('labour.jobDetails')}</Text>
                                 <Text style={styles.companyName}>
-                                    {jobData.company_name || jobData.employers?.company_name || 'Employer'}
+                                    {jobData.company_name || jobData.employers?.company_name || t('labour.hiringEmployer')}
                                 </Text>
                             </View>
                             <View style={styles.verifiedBadge}>
-                                <Text style={styles.verifiedText}>Verified</Text>
+                                <Text style={styles.verifiedText}>{t('labour.verified')}</Text>
                             </View>
                         </View>
 
@@ -114,21 +104,21 @@ const LabourJobApply: React.FC = () => {
                                 {[1, 2, 3, 4, 5].map(i => <FontAwesome5 name="star" solid size={12} color="#FFD700" key={i} />)}
                             </View>
                             <Text style={styles.ratingText}>
-                                {jobData.rating || '4.5'} • Employer Rating
+                                {jobData.rating || '4.5'} • {t('labour.employerRating')}
                             </Text>
                         </View>
 
                         <View style={styles.infoRow}>
                             <Ionicons name="location-outline" size={18} color={COLORS.primary} style={styles.icon} />
                             <Text style={styles.infoText}>
-                                {jobData.lat ? `Location (${Number(jobData.lat).toFixed(3)}, ${Number(jobData.lng).toFixed(3)})` : 'Location — Not specified'}
+                                {jobData.lat ? `${t('auth.location')} (${Number(jobData.lat).toFixed(3)}, ${Number(jobData.lng).toFixed(3)})` : t('labour.locationNotSpecified')}
                             </Text>
                         </View>
 
                         <View style={styles.infoRow}>
                             <Feather name="calendar" size={18} color={COLORS.primary} style={styles.icon} />
                             <Text style={styles.infoText}>
-                                {jobData.start_time ? new Date(jobData.start_time).toLocaleDateString() : 'Date TBD'} • Duration varies
+                                {jobData.start_time ? new Date(jobData.start_time).toLocaleDateString() : t('labour.dateTbd')} • {t('labour.durationVaries')}
                             </Text>
                         </View>
 
@@ -136,7 +126,7 @@ const LabourJobApply: React.FC = () => {
                             <View style={styles.timeWrapper}>
                                 <Feather name="clock" size={18} color={COLORS.primary} style={styles.icon} />
                                 <Text style={styles.infoText}>
-                                    {jobData.start_time ? new Date(jobData.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '9:00 AM'} — work hours
+                                    {jobData.start_time ? new Date(jobData.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '9:00 AM'} — {t('labour.workHours')}
                                 </Text>
                             </View>
                         </View>
@@ -144,19 +134,19 @@ const LabourJobApply: React.FC = () => {
 
                     {/* Card 2: Description & Skills */}
                     <View style={styles.card}>
-                        <Text style={styles.sectionTitle}>Job Description</Text>
+                        <Text style={styles.sectionTitle}>{t('labour.jobDescription')}</Text>
                         <Text style={styles.descriptionText}>
-                            {jobData.title ? `Looking for experienced workers for "${jobData.title}" position. ${jobData.count || jobData.slots_total ? `${jobData.count || jobData.slots_total} slot(s) available.` : ''}` : 'No description available.'}
+                            {jobData.title ? t('labour.lookingForWorkers', { title: jobData.title }) + " " + (jobData.count || jobData.slots_total ? t('labour.slotsAvailable', { count: jobData.count || jobData.slots_total }) : '') : t('labour.noDescription')}
                         </Text>
 
-                        <Text style={[styles.sectionTitle, { marginTop: 16 }]}>Job Status</Text>
+                        <Text style={[styles.sectionTitle, { marginTop: 16 }]}>{t('labour.jobStatus')}</Text>
                         <View style={styles.skillsContainer}>
                             <View style={styles.skillChip}>
                                 <Text style={styles.skillText}>{jobData.status || 'OPEN'}</Text>
                             </View>
                             {jobData.urgent ? (
                                 <View style={[styles.skillChip, { backgroundColor: '#FEE2E2' }]}>
-                                    <Text style={[styles.skillText, { color: '#B91C1C' }]}>URGENT</Text>
+                                    <Text style={[styles.skillText, { color: '#B91C1C' }]}>{t('labour.urgent')}</Text>
                                 </View>
                             ) : null}
                         </View>
@@ -166,10 +156,10 @@ const LabourJobApply: React.FC = () => {
                     <View style={styles.card}>
                         <View style={styles.wageRow}>
                             <View>
-                                <Text style={styles.sectionTitle}>Daily Wage</Text>
-                                <Text style={styles.paymentTerms}>Paid daily after work</Text>
+                                <Text style={styles.sectionTitle}>{t('labour.wage')}</Text>
+                                <Text style={styles.paymentTerms}>{t('labour.paidDaily')}</Text>
                             </View>
-                            <Text style={styles.wageAmount}>₹{jobData.wagePerDay || jobData.wage_per_day || '--'}/day</Text>
+                            <Text style={styles.wageAmount}>₹{jobData.wagePerDay || jobData.wage_per_day || '--'}{t('labour.perDay')}</Text>
                         </View>
                     </View>
 
@@ -177,14 +167,14 @@ const LabourJobApply: React.FC = () => {
                     <View style={styles.card}>
                         <View style={styles.safetyHeader}>
                             <Feather name="shield" size={20} color={COLORS.primary} style={{ marginRight: 8 }} />
-                            <Text style={styles.sectionTitle}>Safety Measures</Text>
+                            <Text style={styles.sectionTitle}>{t('labour.safetyMeasures')}</Text>
                         </View>
                         <Text style={styles.safetyText}>
-                            This employer provides safety equipment and follows standard safety protocols.
+                            {t('labour.safetyStandard')}
                         </Text>
                         <View style={styles.verifiedByRow}>
                             <Feather name="check-circle" size={14} color="#3B82F6" style={styles.checkIcon} />
-                            <Text style={styles.verifiedByText}>Verified by BharatWork</Text>
+                            <Text style={styles.verifiedByText}>{t('labour.verifiedByBharatWork')}</Text>
                         </View>
                     </View>
                 </ScrollView>
@@ -202,7 +192,7 @@ const LabourJobApply: React.FC = () => {
                             <>
                                 {applied ? <Feather name="check" size={18} color="#fff" style={{ marginRight: 4 }} /> : null}
                                 <Text style={styles.applyButtonFullText}>
-                                    {applied ? 'Application Sent' : 'Apply for Job'}
+                                    {applied ? t('labour.applicationSent') : t('labour.applyForJob')}
                                 </Text>
                             </>
                         )}
@@ -216,15 +206,6 @@ const LabourJobApply: React.FC = () => {
     );
 };
 
-const NavIcon = ({ icon, label, active }: { icon: string; label: string; active?: boolean }) => (
-    <View style={styles.navItem}>
-        <View style={[styles.navIconContainer, active && styles.navIconActive]}>
-            <Text style={[styles.navIcon, active && { color: COLORS.primary }]}>{icon}</Text>
-        </View>
-        <Text style={[styles.navLabel, active && { color: COLORS.primary }]}>{label}</Text>
-    </View>
-);
-
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
@@ -236,6 +217,9 @@ const styles = StyleSheet.create({
     header: {
         paddingHorizontal: 20,
         paddingVertical: 15,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
     },
     headerTitle: {
         fontSize: 18,
@@ -244,21 +228,19 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         paddingHorizontal: 16,
-        paddingBottom: 20,
+        paddingBottom: 250, // More bottom padding to avoid sticky footer overlap
     },
     card: {
         backgroundColor: COLORS.white,
         borderRadius: 16,
         padding: 16,
         marginBottom: 16,
-        // Shadow
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 4,
         elevation: 2,
     },
-    // Job Info Card Styles
     jobHeadingRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -279,13 +261,13 @@ const styles = StyleSheet.create({
         color: COLORS.textSecondary,
     },
     verifiedBadge: {
-        backgroundColor: COLORS.successBg,
+        backgroundColor: '#DCFCE7', // COLORS.successBg equivalent
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 4,
     },
     verifiedText: {
-        color: COLORS.success,
+        color: '#16A34A', // COLORS.success equivalent
         fontSize: 10,
         fontWeight: 'bold',
     },
@@ -294,11 +276,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 12,
     },
-    stars: {
-        fontSize: 14,
-        marginRight: 6,
-        color: '#FBBF24', // Star yellow
-    },
     ratingText: {
         fontSize: 12,
         color: COLORS.textSecondary,
@@ -306,10 +283,9 @@ const styles = StyleSheet.create({
     infoRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 8,
+        marginBottom: 10,
     },
     icon: {
-        fontSize: 16,
         marginRight: 8,
         width: 20,
         textAlign: 'center',
@@ -318,32 +294,16 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: COLORS.textPrimary,
     },
-    mutedText: {
-        color: COLORS.muted,
-    },
     timeRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: 8,
+        marginTop: 4,
     },
     timeWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
     },
-    applyButtonSmall: {
-        backgroundColor: COLORS.primary,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 8,
-    },
-    applyButtonText: {
-        color: COLORS.white,
-        fontWeight: 'bold',
-        fontSize: 14,
-    },
-
-    // Description Card Styles
     sectionTitle: {
         fontSize: 16,
         fontWeight: 'bold',
@@ -361,7 +321,7 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     skillChip: {
-        backgroundColor: COLORS.chipBg,
+        backgroundColor: '#F3F4F6', // COLORS.chipBg equivalent
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 6,
@@ -371,9 +331,8 @@ const styles = StyleSheet.create({
     skillText: {
         fontSize: 12,
         color: COLORS.textPrimary,
+        fontWeight: '500',
     },
-
-    // Wage Card Styles
     wageRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -388,17 +347,10 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: COLORS.success,
     },
-
-    // Safety Card Styles
     safetyHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 8,
-    },
-    safetyIcon: {
-        fontSize: 18,
-        marginRight: 8,
-        color: '#3B82F6', // Blue shield
     },
     safetyText: {
         fontSize: 13,
@@ -411,8 +363,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     checkIcon: {
-        fontSize: 14,
-        color: '#3B82F6',
         marginRight: 6,
     },
     verifiedByText: {
@@ -420,34 +370,6 @@ const styles = StyleSheet.create({
         color: '#3B82F6',
         fontWeight: '500',
     },
-
-    // Nav
-    bottomNav: {
-        flexDirection: 'row',
-        backgroundColor: COLORS.white,
-        paddingVertical: 10,
-        borderTopWidth: 1,
-        borderTopColor: COLORS.border,
-        justifyContent: 'space-around',
-    },
-    navItem: {
-        alignItems: 'center',
-    },
-    navIconContainer: {
-        marginBottom: 4,
-    },
-    navIconActive: {
-        // active state styling
-    },
-    navIcon: {
-        fontSize: 20,
-        color: COLORS.muted,
-    },
-    navLabel: {
-        fontSize: 10,
-        color: COLORS.muted,
-    },
-
     backButton: {
         padding: 8,
     },
@@ -458,26 +380,26 @@ const styles = StyleSheet.create({
         right: 0,
         height: 140,
         backgroundColor: COLORS.primary,
-        opacity: 0.1, // Soft background tint
+        opacity: 0.1,
         borderBottomLeftRadius: 30,
         borderBottomRightRadius: 30,
     },
     stickyFooterButton: {
         position: 'absolute',
-        bottom: 50, // Above bottom tabs
+        bottom: 70, // Above bottom tabs
         left: 0,
         right: 0,
         paddingHorizontal: 20,
         paddingVertical: 12,
         backgroundColor: COLORS.white,
         borderTopWidth: 1,
-        borderColor: COLORS.borderLight,
+        borderColor: '#E5E7EB',
         elevation: 10,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: -3 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
-        zIndex: 1000, // Guarantee Click interactive
+        zIndex: 1000,
     },
     applyButtonFull: {
         backgroundColor: COLORS.primary,

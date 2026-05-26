@@ -10,10 +10,12 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from '../../assets/css/Opening';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 
 const { height } = Dimensions.get('window');
 
 export default function Opening() {
+  const { t, i18n } = useTranslation();
   const navigation = useNavigation<any>();
 
   const logoTranslateY = useRef(new Animated.Value(200)).current;
@@ -21,10 +23,10 @@ export default function Opening() {
   const contentOpacity = useRef(new Animated.Value(0)).current;
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [language, setLanguage] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
 
   const handleSubmit = () => {
-    if (!language) return;
+    if (!selectedLanguage) return;
     navigation.replace('Onboarding');
   };
 
@@ -65,6 +67,12 @@ export default function Opening() {
     checkAuth();
   }, []);
 
+  const changeLanguage = (lang: 'en' | 'hi') => {
+    i18n.changeLanguage(lang);
+    setSelectedLanguage(lang === 'en' ? 'English' : 'हिंदी');
+    setDropdownOpen(false);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <View style={styles.container}>
@@ -83,8 +91,8 @@ export default function Opening() {
             },
           ]}
         >
-          <Text style={styles.title}>Choose Your Language</Text>
-          <Text style={styles.subtitle}>अपनी भाषा चुनें</Text>
+          <Text style={styles.title}>{t('common.chooseLanguage')}</Text>
+          <Text style={styles.subtitle}>{t('common.chooseLanguageHi')}</Text>
 
           {/* DROPDOWN */}
           <TouchableOpacity
@@ -93,7 +101,7 @@ export default function Opening() {
             activeOpacity={0.8}
           >
             <Text style={styles.dropdownText}>
-              {language ? language : 'Select Language'}
+              {selectedLanguage ? selectedLanguage : t('common.selectLanguage')}
             </Text>
             <View style={styles.arrow} />
           </TouchableOpacity>
@@ -102,32 +110,26 @@ export default function Opening() {
             <View style={styles.dropdownMenu}>
               <TouchableOpacity
                 style={styles.dropdownItem}
-                onPress={() => {
-                  setLanguage('English');
-                  setDropdownOpen(false);
-                }}
+                onPress={() => changeLanguage('en')}
               >
-                <Text style={styles.dropdownItemText}>English</Text>
+                <Text style={styles.dropdownItemText}>{t('common.english')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.dropdownItem}
-                onPress={() => {
-                  setLanguage('हिंदी');
-                  setDropdownOpen(false);
-                }}
+                onPress={() => changeLanguage('hi')}
               >
-                <Text style={styles.dropdownItemText}>हिंदी</Text>
+                <Text style={styles.dropdownItemText}>{t('common.hindi')}</Text>
               </TouchableOpacity>
             </View>
           )}
 
           <TouchableOpacity
-            style={[styles.button, { opacity: language ? 1 : 0.5 }]}
-            disabled={!language}
+            style={[styles.button, { opacity: selectedLanguage ? 1 : 0.5 }]}
+            disabled={!selectedLanguage}
             onPress={handleSubmit}
           >
-            <Text style={styles.buttonText}>Submit</Text>
+            <Text style={styles.buttonText}>{t('common.submit')}</Text>
           </TouchableOpacity>
         </Animated.View>
       </View>

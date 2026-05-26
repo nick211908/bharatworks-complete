@@ -17,6 +17,7 @@ import Feather, { FeatherIconName } from '@react-native-vector-icons/feather'
 import Ionicons from '@react-native-vector-icons/ionicons'
 import COLORS from '../../assets/images/theme/colors'
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
 type ViewState = 'LOADING' | 'CONFIRM' | 'SUCCESS' | 'NONE'
 
@@ -35,6 +36,7 @@ interface JobData {
 }
 
 export default function LabourJobNotification() {
+    const { t, i18n } = useTranslation();
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
 
@@ -75,7 +77,7 @@ export default function LabourJobNotification() {
             }
 
             if (!jobId) {
-                Alert.alert('Error', 'No job information found.');
+                Alert.alert(t('common.error'), t('labour.noJobInfo'));
                 setViewState('NONE');
                 return;
             }
@@ -89,7 +91,7 @@ export default function LabourJobNotification() {
                 wage_per_day: fullJob.wage_per_day,
                 distance_km: initialData?.distance_km,
                 employer_id: fullJob.employer_id,
-                company_name: fullJob.employers?.company_name || 'Employer',
+                company_name: fullJob.employers?.company_name || t('labour.hiringEmployer'),
                 start_time: fullJob.start_time,
                 end_time: fullJob.end_time,
             });
@@ -98,7 +100,7 @@ export default function LabourJobNotification() {
 
         } catch (error: any) {
             console.error('Error loading job:', error);
-            Alert.alert('Error', 'Failed to load job details.');
+            Alert.alert(t('common.error'), t('labour.failedToLoadJob'));
             setViewState('NONE');
         }
     };
@@ -112,7 +114,7 @@ export default function LabourJobNotification() {
             await JobService.applyForJob(jobData.job_id, workerId);
             setViewState('SUCCESS');
         } catch (error: any) {
-            Alert.alert("Application Failed", error.message);
+            Alert.alert(t('labour.applicationFailed'), error.message);
         } finally {
             setLoading(false);
         }
@@ -133,7 +135,8 @@ export default function LabourJobNotification() {
     const formatDate = (isoString?: string) => {
         if (!isoString) return 'TBD';
         const date = new Date(isoString);
-        return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        const locale = i18n.language === 'hi' ? 'hi-IN' : 'en-IN';
+        return date.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
     };
 
     if (viewState === 'NONE') {
@@ -144,7 +147,7 @@ export default function LabourJobNotification() {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={ORANGE} />
-                <Text style={styles.loadingText}>Loading job details...</Text>
+                <Text style={styles.loadingText}>{t('labour.loadingJobDetails')}</Text>
             </View>
         );
     }
@@ -156,7 +159,7 @@ export default function LabourJobNotification() {
                 <View style={styles.overlay}>
                     <View style={styles.card}>
                         <View style={styles.header}>
-                            <Text style={styles.title}>Confirm Job Acceptance?</Text>
+                            <Text style={styles.title}>{t('labour.confirmJobAcceptance')}</Text>
                             <Pressable onPress={handleClose}>
                                 <Feather name="x" size={24} color="#666" />
                             </Pressable>
@@ -164,28 +167,28 @@ export default function LabourJobNotification() {
 
                         <InfoRow
                             icon="briefcase"
-                            label="Position"
-                            value={jobData?.title || 'Job Offer'}
+                            label={t('labour.position')}
+                            value={jobData?.title || t('labour.jobDetails')}
                         />
                         <InfoRow
                             icon="credit-card"
-                            label="Wage"
-                            value={`₹${jobData?.wage_per_day || 'N/A'} / day`}
+                            label={t('labour.wage')}
+                            value={`₹${jobData?.wage_per_day || 'N/A'}${t('labour.perDay')}`}
                         />
                         <InfoRow
                             icon="map-pin"
-                            label="Distance"
-                            value={jobData?.distance_km ? `${jobData.distance_km.toFixed(1)} km away` : 'Calculate on map'}
+                            label={t('auth.location')}
+                            value={jobData?.distance_km ? t('labour.distance', { count: jobData.distance_km.toFixed(1) }) : t('labour.calculateOnMap')}
                         />
                         <InfoRow
                             icon="users"
-                            label="Employer"
-                            value={jobData?.company_name || 'Hiring Employer'}
+                            label={t('labour.hiringEmployer')}
+                            value={jobData?.company_name || t('labour.hiringEmployer')}
                         />
 
                         <View style={styles.actions}>
                             <Pressable style={styles.cancelBtn} onPress={handleClose}>
-                                <Text style={styles.cancelText}>Cancel</Text>
+                                <Text style={styles.cancelText}>{t('common.cancel')}</Text>
                             </Pressable>
 
                             <Pressable
@@ -196,7 +199,7 @@ export default function LabourJobNotification() {
                                 {loading ? (
                                     <ActivityIndicator size="small" color="#fff" />
                                 ) : (
-                                    <Text style={styles.acceptText}>Accept Now</Text>
+                                    <Text style={styles.acceptText}>{t('labour.acceptNow')}</Text>
                                 )}
                             </Pressable>
                         </View>
@@ -214,31 +217,31 @@ export default function LabourJobNotification() {
                             <View style={styles.checkCircleLarge}>
                                 <Feather name="check" size={48} color="#2ECC71" />
                             </View>
-                            <Text style={styles.successTitleMain}>Job Confirmed!</Text>
-                            <Text style={styles.successSubtitle}>You have successfully applied for this job</Text>
+                            <Text style={styles.successTitleMain}>{t('labour.jobConfirmed')}</Text>
+                            <Text style={styles.successSubtitle}>{t('labour.applySuccessSubtitle')}</Text>
                         </View>
 
                         {/* Job Details Card */}
                         <View style={styles.detailsCard}>
-                            <Text style={styles.cardTitle}>Job Details</Text>
+                            <Text style={styles.cardTitle}>{t('labour.jobDetails')}</Text>
 
                             <View style={styles.detailRow}>
-                                <Text style={styles.detailLabel}>Position</Text>
+                                <Text style={styles.detailLabel}>{t('labour.position')}</Text>
                                 <Text style={styles.detailValue}>{jobData?.title || 'Job'}</Text>
                             </View>
 
                             <View style={styles.detailRow}>
-                                <Text style={styles.detailLabel}>Employer</Text>
+                                <Text style={styles.detailLabel}>{t('labour.hiringEmployer')}</Text>
                                 <Text style={styles.detailValue}>{jobData?.company_name || 'Employer'}</Text>
                             </View>
 
                             <View style={styles.detailRow}>
-                                <Text style={styles.detailLabel}>Daily Wage</Text>
-                                <Text style={styles.detailHighlight}>₹{jobData?.wage_per_day}/day</Text>
+                                <Text style={styles.detailLabel}>{t('labour.wage')}</Text>
+                                <Text style={styles.detailHighlight}>₹{jobData?.wage_per_day}{t('labour.perDay')}</Text>
                             </View>
 
                             <View style={styles.detailRow}>
-                                <Text style={styles.detailLabel}>Start Date</Text>
+                                <Text style={styles.detailLabel}>{t('labour.startDate')}</Text>
                                 <View style={styles.valueWithIcon}>
                                     <Feather name="calendar" size={14} color="#333" style={{ marginRight: 6 }} />
                                     <Text style={styles.detailValue}>{formatDate(jobData?.start_time)}</Text>
@@ -246,7 +249,7 @@ export default function LabourJobNotification() {
                             </View>
 
                             <View style={styles.detailRow}>
-                                <Text style={styles.detailLabel}>Timing</Text>
+                                <Text style={styles.detailLabel}>{t('labour.timing')}</Text>
                                 <Text style={styles.detailValue}>
                                     {formatTime(jobData?.start_time)} - {formatTime(jobData?.end_time)}
                                 </Text>
@@ -255,18 +258,18 @@ export default function LabourJobNotification() {
 
                         {/* Contact Card */}
                         <View style={styles.detailsCard}>
-                            <Text style={styles.cardTitle}>Contact Employer</Text>
-                            <Text style={styles.cardSub}>You can contact the employer for more details</Text>
+                            <Text style={styles.cardTitle}>{t('labour.contactEmployer')}</Text>
+                            <Text style={styles.cardSub}>{t('labour.contactSub')}</Text>
 
                             <View style={styles.contactActions}>
                                 <Pressable style={styles.contactBtnOutline}>
                                     <Ionicons name="chatbubble-outline" size={20} color={ORANGE} style={{ marginRight: 8 }} />
-                                    <Text style={styles.contactBtnTextOutline}>Message</Text>
+                                    <Text style={styles.contactBtnTextOutline}>{t('labour.message')}</Text>
                                 </Pressable>
 
                                 <Pressable style={styles.contactBtnFill}>
                                     <Ionicons name="call-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-                                    <Text style={styles.contactBtnTextFill}>Call</Text>
+                                    <Text style={styles.contactBtnTextFill}>{t('labour.call')}</Text>
                                 </Pressable>
                             </View>
                         </View>
@@ -275,11 +278,11 @@ export default function LabourJobNotification() {
 
                         {/* Bottom Actions */}
                         <Pressable style={styles.homeBtn} onPress={handleLabourHome}>
-                            <Text style={styles.homeBtnText}>Go to Home</Text>
+                            <Text style={styles.homeBtnText}>{t('labour.goToHome')}</Text>
                         </Pressable>
 
                         <Pressable style={styles.findJobsBtn} onPress={handleLabourJobs}>
-                            <Text style={styles.findJobsText}>Find More Jobs</Text>
+                            <Text style={styles.findJobsText}>{t('labour.findMoreJobs')}</Text>
                         </Pressable>
 
                     </ScrollView>
@@ -313,7 +316,6 @@ function InfoRow({
         </View>
     )
 }
-
 
 /* ---------- Styles ---------- */
 
@@ -548,24 +550,5 @@ const styles = StyleSheet.create({
         color: ORANGE,
         fontSize: 16,
         fontWeight: '600',
-    },
-    tabBar: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        backgroundColor: COLORS.white,
-        paddingVertical: 10,
-        borderTopWidth: 1,
-        borderColor: COLORS.border,
-    },
-    tab: {
-        alignItems: 'center',
-    },
-    tabLabel: {
-        fontSize: 11,
-        color: COLORS.textMuted,
     },
 })

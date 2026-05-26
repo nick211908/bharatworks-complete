@@ -21,12 +21,14 @@ import PrimaryButton from '../components/PrimaryButton'
 import LocationSelector from '../components/LocationSelector'
 import api from '../lib/api'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useTranslation } from 'react-i18next'
 
 export default function QuickJobPostScreen() {
+    const { t } = useTranslation()
     const navigation = useNavigation()
     const [quantity, setQuantity] = useState(1)
     const [wage, setWage] = useState('650')
-    const [currentLocation, setCurrentLocation] = useState('Fetching location...')
+    const [currentLocation, setCurrentLocation] = useState(t('job.fetchingLocation'))
     const [loading, setLoading] = useState(false)
     const [employerId, setEmployerId] = useState<string | null>(null)
     const [startDate, setStartDate] = useState(new Date())
@@ -50,18 +52,18 @@ export default function QuickJobPostScreen() {
                 const granted = await PermissionsAndroid.request(
                     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
                     {
-                        title: "Location Permission",
-                        message: "We need access to your location to post jobs for nearby workers.",
-                        buttonNeutral: "Ask Me Later",
-                        buttonNegative: "Cancel",
-                        buttonPositive: "OK"
+                        title: t('job.permTitle'),
+                        message: t('job.permMsg'),
+                        buttonNeutral: t('job.permNeutral'),
+                        buttonNegative: t('job.permNegative'),
+                        buttonPositive: t('job.permPositive')
                     }
                 )
                 if (granted === PermissionsAndroid.RESULTS.GRANTED) {
                     getCurrentLocation()
                 } else {
                     console.log("Location permission denied")
-                    setCurrentLocation("Location denied - Set manually")
+                    setCurrentLocation(t('job.locationDenied'))
                 }
             } catch (err) {
                 console.warn(err)
@@ -76,12 +78,12 @@ export default function QuickJobPostScreen() {
             (position) => {
                 const { latitude, longitude } = position.coords
                 setCoords({ lat: latitude, lng: longitude })
-                setCurrentLocation(`Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`)
+                setCurrentLocation(t('job.latLng', { lat: latitude.toFixed(4), lng: longitude.toFixed(4) }))
             },
             (error) => {
                 // See error code charts below.
                 console.log(error.code, error.message)
-                setCurrentLocation('Location error - Tap to set')
+                setCurrentLocation(t('job.locationError'))
             },
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
         )
@@ -119,12 +121,12 @@ export default function QuickJobPostScreen() {
 
     const handlePostJob = async () => {
         if (!employerId) {
-            Alert.alert('Error', 'Employer profile not loaded.')
+            Alert.alert(t('auth.validationError'), t('job.errProfileNotLoaded'))
             return
         }
 
         if (!coords) {
-            Alert.alert('Error', 'Location missing. Please wait for location fetch.')
+            Alert.alert(t('auth.validationError'), t('job.errLocationMissing'))
             return
         }
 
@@ -139,7 +141,7 @@ export default function QuickJobPostScreen() {
 
         try {
             await api.post('/jobs', {
-                title: 'Quick Job (Unskilled)',
+                title: t('job.defaultJobTitle'),
                 count: quantity,
                 wagePerDay: parseFloat(wage) || 650.00,
                 lat: coords.lat,
@@ -150,11 +152,11 @@ export default function QuickJobPostScreen() {
                 endTime: fullEndTime.toISOString()
             });
 
-            Alert.alert('Success', 'Job Posted Successfully!', [
+            Alert.alert(t('job.successTitle'), t('job.successMsg'), [
                 { text: 'OK', onPress: () => navigation.goBack() }
             ]);
         } catch (error: any) {
-            Alert.alert('Error', error.response?.data?.error || error.message);
+            Alert.alert(t('auth.validationError'), error.response?.data?.error || error.message);
         } finally {
             setLoading(false);
         }
@@ -166,8 +168,8 @@ export default function QuickJobPostScreen() {
                 {/* HEADER */}
                 <View style={styles.header}>
                     <View>
-                        <Text style={styles.title}>Quick Job Post</Text>
-                        <Text style={styles.subtitle}>Post in under 60 seconds</Text>
+                        <Text style={styles.title}>{t('job.title')}</Text>
+                        <Text style={styles.subtitle}>{t('job.subtitle')}</Text>
                     </View>
 
                     <TouchableOpacity>
@@ -177,11 +179,11 @@ export default function QuickJobPostScreen() {
 
                 {/* JOB DETAILS */}
                 <View style={styles.card}>
-                    <Text style={styles.cardTitle}>Job Details</Text>
+                    <Text style={styles.cardTitle}>{t('job.details')}</Text>
 
                     <View style={styles.rowBetween}>
                         <View style={styles.qtyBox}>
-                            <Text style={styles.label}>Quantity</Text>
+                            <Text style={styles.label}>{t('job.quantity')}</Text>
                             <View style={styles.qtyControl}>
                                 <TouchableOpacity
                                     onPress={() => setQuantity(Math.max(1, quantity - 1))}
@@ -198,13 +200,13 @@ export default function QuickJobPostScreen() {
                         </View>
 
                         <View style={styles.priceBox}>
-                            <Text style={styles.label}>Daily Wage (₹)</Text>
+                            <Text style={styles.label}>{t('job.dailyWage')}</Text>
                             <TextInput
                                 style={styles.wageInput}
                                 value={wage}
                                 onChangeText={setWage}
                                 keyboardType="numeric"
-                                placeholder="650"
+                                placeholder={t('job.wagePlaceholder')}
                             />
                         </View>
                     </View>
@@ -250,7 +252,7 @@ export default function QuickJobPostScreen() {
 
                 {/* POST BUTTON */}
                 <PrimaryButton
-                    title={loading ? "Posting..." : "Post Job"}
+                    title={loading ? t('job.posting') : t('job.postJob')}
                     style={styles.postBtn}
                     onPress={handlePostJob}
                 />

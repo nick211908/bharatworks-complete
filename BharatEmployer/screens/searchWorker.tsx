@@ -12,8 +12,10 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import SearchInput from '../components/SearchInput'
 import HelperCard from '../components/HelperCard'
 import api from '../lib/api'
+import { useTranslation } from 'react-i18next'
 
 export default function SearchHelperScreen() {
+    const { t } = useTranslation()
     const [workers, setWorkers] = useState<any[]>([])
     const [searchText, setSearchText] = useState('')
 
@@ -44,7 +46,7 @@ export default function SearchHelperScreen() {
                         <Icon name="chevron-back" size={26} color="#000" />
                     </TouchableOpacity>
 
-                    <Text style={styles.headerTitle}>Search Your Helper</Text>
+                    <Text style={styles.headerTitle}>{t('search.headerTitle')}</Text>
 
                     <TouchableOpacity style={styles.bell}>
                         <Icon name="notifications-outline" size={20} color="#1E2C63" />
@@ -54,7 +56,7 @@ export default function SearchHelperScreen() {
                 {/* SEARCH BAR */}
                 <SearchInput
                     style={{ margin: 20, marginBottom: 10 }}
-                    placeholder="Search by name..."
+                    placeholder={t('search.placeholder')}
                     value={searchText}
                     onChangeText={setSearchText}
                 />
@@ -63,16 +65,16 @@ export default function SearchHelperScreen() {
                 {workers.map((worker) => (
                     <HelperCard
                         key={worker.id}
-                        name={worker.user?.name || worker.users?.name || 'Unknown'}
-                        role="Labour"
+                        name={worker.user?.name || worker.users?.name || t('common.noData')}
+                        role={t('home.workerRole')}
                         image={`https://i.pravatar.cc/400?u=${worker.id}`}
-                        wage={`Rs. ${worker.expectedWage ?? worker.expected_wage ?? 'N/A'} /- Day`}
+                        wage={`₹ ${worker.expectedWage ?? worker.expected_wage ?? 'N/A'}${t('home.perDay')}`}
                     />
                 ))}
 
                 {workers.length === 0 && (
                     <Text style={{ textAlign: 'center', marginTop: 20, color: '#999' }}>
-                        No workers found
+                        {t('search.noWorkers')}
                     </Text>
                 )}
             </ScrollView>

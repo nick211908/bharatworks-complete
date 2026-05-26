@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import COLORS from '../assets/images/theme/colors';
+import { useTranslation } from 'react-i18next';
 
 export interface JobCardProps {
     title: string;
@@ -29,6 +30,8 @@ const JobCard: React.FC<JobCardProps> = ({
     duration,
     onPress,
 }) => {
+    const { t } = useTranslation();
+    
     // Generate avatar color based on company name
     const getAvatarColor = (name: string) => {
         const colors = ['#FF8C69', '#2A9D8F', '#457B9D', '#F4A261', '#E63946', '#2ECC71'];
@@ -48,7 +51,7 @@ const JobCard: React.FC<JobCardProps> = ({
             {urgent && (
                 <View style={styles.urgentBanner}>
                     <Feather name="zap" size={12} color="#FFF" />
-                    <Text style={styles.urgentText}>Hiring Urgently</Text>
+                    <Text style={styles.urgentText}>{t('labour.hiringUrgently')}</Text>
                 </View>
             )}
 
@@ -113,11 +116,11 @@ const JobCard: React.FC<JobCardProps> = ({
             {/* Footer with Pay and CTA */}
             <View style={styles.footer}>
                 <View style={styles.paySection}>
-                    <Text style={styles.payLabel}>Daily Wage</Text>
+                    <Text style={styles.payLabel}>{t('labour.dailyWage')}</Text>
                     <Text style={styles.payAmount}>{pay}</Text>
                 </View>
                 <TouchableOpacity style={styles.applyButton} activeOpacity={0.8}>
-                    <Text style={styles.applyText}>Apply Now</Text>
+                    <Text style={styles.applyText}>{t('labour.applyNow')}</Text>
                     <Feather name="arrow-right" size={16} color="#FFF" />
                 </TouchableOpacity>
             </View>

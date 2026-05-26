@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
+import { useTranslation } from 'react-i18next'
 
 interface HelperCardProps {
     name: string
@@ -10,6 +11,7 @@ interface HelperCardProps {
 }
 
 export default function HelperCard({ name, role, image, wage }: HelperCardProps) {
+    const { t } = useTranslation()
     return (
         <View style={styles.cardWrapper}>
             <View style={styles.cardCurve} />
@@ -36,11 +38,11 @@ export default function HelperCard({ name, role, image, wage }: HelperCardProps)
                         </View>
                     </View>
 
-                    <Text style={styles.meta}>Timing: 8:00 Am to 5:00 PM</Text>
-                    <Text style={styles.meta}>Wage: {wage}</Text>
+                    <Text style={styles.meta}>{t('helper.timing')}</Text>
+                    <Text style={styles.meta}>{t('helper.wage')} {wage}</Text>
 
                     <TouchableOpacity style={styles.viewBtn}>
-                        <Text style={styles.viewText}>View →</Text>
+                        <Text style={styles.viewText}>{t('helper.view')}</Text>
                     </TouchableOpacity>
                 </View>
             </View>

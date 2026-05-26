@@ -9,6 +9,7 @@ import {
     TouchableWithoutFeedback
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
+import { useTranslation } from 'react-i18next'
 
 interface LocationSelectorProps {
     currentLocation: string
@@ -16,6 +17,7 @@ interface LocationSelectorProps {
 }
 
 export default function LocationSelector({ currentLocation, onLocationChange }: LocationSelectorProps) {
+    const { t } = useTranslation()
     const [modalVisible, setModalVisible] = useState(false)
     const [tempLocation, setTempLocation] = useState(currentLocation)
 
@@ -28,16 +30,16 @@ export default function LocationSelector({ currentLocation, onLocationChange }: 
         <>
             <View style={styles.card}>
                 <View style={styles.rowBetween}>
-                    <Text style={styles.cardTitle}>Location</Text>
+                    <Text style={styles.cardTitle}>{t('loc.location')}</Text>
                     <TouchableOpacity onPress={() => setModalVisible(true)}>
-                        <Text style={styles.change}>Change</Text>
+                        <Text style={styles.change}>{t('loc.change')}</Text>
                     </TouchableOpacity>
                 </View>
 
                 <View style={styles.locationRow}>
                     <Icon name="location-sharp" size={22} color="#FF6B3D" />
                     <View style={{ flex: 1 }}>
-                        <Text style={styles.locationMain}>Use Current Location</Text>
+                        <Text style={styles.locationMain}>{t('loc.useCurrent')}</Text>
                         <Text style={styles.locationSub} numberOfLines={2}>
                             {currentLocation}
                         </Text>
@@ -58,10 +60,10 @@ export default function LocationSelector({ currentLocation, onLocationChange }: 
                 >
                     <TouchableWithoutFeedback>
                         <View style={styles.modalContent}>
-                            <Text style={styles.modalTitle}>Change Location</Text>
+                            <Text style={styles.modalTitle}>{t('loc.changeTitle')}</Text>
                             <TextInput
                                 style={styles.input}
-                                placeholder="Enter location"
+                                placeholder={t('loc.enterLocation')}
                                 value={tempLocation}
                                 onChangeText={setTempLocation}
                             />
@@ -70,13 +72,13 @@ export default function LocationSelector({ currentLocation, onLocationChange }: 
                                     style={[styles.modalBtn, styles.cancelBtn]}
                                     onPress={() => setModalVisible(false)}
                                 >
-                                    <Text style={styles.cancelText}>Cancel</Text>
+                                    <Text style={styles.cancelText}>{t('loc.cancel')}</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={[styles.modalBtn, styles.saveBtn]}
                                     onPress={handleSave}
                                 >
-                                    <Text style={styles.saveText}>Save</Text>
+                                    <Text style={styles.saveText}>{t('loc.save')}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>

@@ -8,12 +8,15 @@ import {
   StyleSheet,
 } from "react-native";
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
 import styles from "../../assets/css/Role";
 const { width } = Dimensions.get("window");
 
 export default function Role() {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
+  
   const handleWorker = () => {
     console.log("Worker selected");
     navigation.navigate("Authentication", {
@@ -45,26 +48,26 @@ export default function Role() {
         BHARAT<Text style={styles.brandHighlight}>WORK</Text>
       </Text>
 
-      <Text style={styles.subtitle}>LABOUR APP</Text>
+      <Text style={styles.subtitle}>{t('auth.labourApp')}</Text>
 
       {/* Choose Role */}
-      <Text style={styles.chooseText}>Choose your Role</Text>
+      <Text style={styles.chooseText}>{t('auth.chooseRole')}</Text>
 
       {/* Worker Button */}
       <TouchableOpacity style={styles.roleButton} onPress={handleWorker}>
-        <Text style={styles.roleText}>Worker</Text>
+        <Text style={styles.roleText}>{t('auth.worker')}</Text>
       </TouchableOpacity>
 
       {/* OR Divider */}
       <View style={styles.dividerContainer}>
         <View style={styles.line} />
-        <Text style={styles.orText}>OR</Text>
+        <Text style={styles.orText}>{t('common.or')}</Text>
         <View style={styles.line} />
       </View>
 
       {/* Agent Button */}
       <TouchableOpacity style={styles.roleButton} onPress={handleAgent}>
-        <Text style={styles.roleText}>Agent</Text>
+        <Text style={styles.roleText}>{t('auth.agent')}</Text>
       </TouchableOpacity>
     </View>
   );

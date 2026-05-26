@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { JobAlertData } from '../services/FCMService';
 import { JobService } from '../services/JobService';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
     job: JobAlertData | null;
@@ -22,6 +23,7 @@ const TIMEOUT_SECONDS = 30;
 const { width } = Dimensions.get('window');
 
 export default function JobAlertModal({ job, onDismiss }: Props) {
+    const { t } = useTranslation();
     const slideAnim = useRef(new Animated.Value(300)).current;
     const [countdown, setCountdown] = useState(TIMEOUT_SECONDS);
     const [accepting, setAccepting] = useState(false);
@@ -105,7 +107,7 @@ export default function JobAlertModal({ job, onDismiss }: Props) {
                     {/* Urgency Banner */}
                     {isUrgent && (
                         <View style={styles.urgentBanner}>
-                            <Text style={styles.urgentText}>🚨  URGENT JOB</Text>
+                            <Text style={styles.urgentText}>🚨  {t('labour.urgentJob')}</Text>
                         </View>
                     )}
 
@@ -115,7 +117,7 @@ export default function JobAlertModal({ job, onDismiss }: Props) {
                             <Text style={styles.iconEmoji}>💼</Text>
                         </View>
                         <View style={styles.headerText}>
-                            <Text style={styles.newJobLabel}>New Job Near You</Text>
+                            <Text style={styles.newJobLabel}>{t('labour.newJobNearYou')}</Text>
                             <Text style={styles.companyName}>{job.companyName}</Text>
                         </View>
                         <View style={styles.distanceBadge}>
@@ -128,16 +130,16 @@ export default function JobAlertModal({ job, onDismiss }: Props) {
 
                     {/* Wage */}
                     <View style={styles.wageRow}>
-                        <Text style={styles.wageLabel}>Daily Wage</Text>
+                        <Text style={styles.wageLabel}>{t('labour.dailyWage')}</Text>
                         <Text style={styles.wageAmount}>₹{wage.toLocaleString('en-IN')}</Text>
-                        <Text style={styles.wageUnit}>/day</Text>
+                        <Text style={styles.wageUnit}>{t('labour.perDay')}</Text>
                     </View>
 
                     {/* Countdown bar */}
                     <View style={styles.progressBg}>
                         <View style={[styles.progressFill, { width: `${progress}%` as any }]} />
                     </View>
-                    <Text style={styles.countdownText}>Auto-declining in {countdown}s</Text>
+                    <Text style={styles.countdownText}>{t('labour.autoDecliningIn', { count: countdown })}</Text>
 
                     {/* Buttons */}
                     <View style={styles.buttonRow}>
@@ -146,7 +148,7 @@ export default function JobAlertModal({ job, onDismiss }: Props) {
                             onPress={handleDismiss}
                             activeOpacity={0.8}
                         >
-                            <Text style={styles.declineBtnText}>✕  Decline</Text>
+                            <Text style={styles.declineBtnText}>✕  {t('labour.decline')}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -158,9 +160,9 @@ export default function JobAlertModal({ job, onDismiss }: Props) {
                             {accepting ? (
                                 <ActivityIndicator color="#FFF" />
                             ) : accepted ? (
-                                <Text style={styles.acceptBtnText}>✓  Accepted!</Text>
+                                <Text style={styles.acceptBtnText}>✓  {t('labour.jobConfirmed')}</Text>
                             ) : (
-                                <Text style={styles.acceptBtnText}>✓  Accept Job</Text>
+                                <Text style={styles.acceptBtnText}>✓  {t('labour.acceptJob')}</Text>
                             )}
                         </TouchableOpacity>
                     </View>

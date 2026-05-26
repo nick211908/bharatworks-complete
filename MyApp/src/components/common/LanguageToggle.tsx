@@ -1,22 +1,19 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { t, setLanguage } from '../../utils/i18n';
+import { useTranslation } from 'react-i18next';
 
 interface LanguageToggleProps {
-  lang: 'en' | 'hi';
-  onToggle: (lang: 'en' | 'hi') => void;
   style?: 'absolute' | 'inline';
 }
 
 export const LanguageToggle: React.FC<LanguageToggleProps> = ({
-  lang,
-  onToggle,
   style = 'absolute'
 }) => {
+  const { t, i18n } = useTranslation();
+
   const handleToggle = () => {
-    const nextLang = lang === 'en' ? 'hi' : 'en';
-    setLanguage(nextLang);
-    onToggle(nextLang);
+    const nextLang = i18n.language === 'en' ? 'hi' : 'en';
+    i18n.changeLanguage(nextLang);
   };
 
   return (
@@ -24,7 +21,9 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({
       style={[styles.button, style === 'absolute' && styles.absolutePosition]}
       onPress={handleToggle}
     >
-      <Text style={styles.buttonText}>{t('languageToggle')}</Text>
+      <Text style={styles.buttonText}>
+        {i18n.language === 'en' ? 'हिन्दी में बदलें' : 'Switch to English'}
+      </Text>
     </TouchableOpacity>
   );
 };

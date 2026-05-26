@@ -16,9 +16,11 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import PrimaryButton from '../components/PrimaryButton'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import api from '../lib/api'
+import { useTranslation } from 'react-i18next'
 
 export default function AuthScreen() {
     const navigation = useNavigation<any>()
+    const { t } = useTranslation()
     const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login')
 
     // Form States
@@ -34,11 +36,11 @@ export default function AuthScreen() {
     // Handlers
     const handleLogin = async () => {
         if (!identifier.trim()) {
-            Alert.alert('Validation Error', 'Please enter your email or phone')
+            Alert.alert(t('auth.validationError'), t('auth.enterEmailPhone'))
             return
         }
         if (!password) {
-            Alert.alert('Validation Error', 'Please enter your password')
+            Alert.alert(t('auth.validationError'), t('auth.enterPassword'))
             return
         }
         setLoading(true)
@@ -56,7 +58,7 @@ export default function AuthScreen() {
                 DeviceEventEmitter.emit('AUTH_LOGIN')
             }
         } catch (err: any) {
-            Alert.alert('Login Failed', err.response?.data?.error || err.message)
+            Alert.alert(t('auth.loginFailed'), err.response?.data?.error || err.message)
         } finally {
             setLoading(false)
         }
@@ -65,22 +67,22 @@ export default function AuthScreen() {
     const handleSignup = async () => {
         // Validation
         if (!fullName.trim()) {
-            Alert.alert('Validation Error', 'Please enter your full name')
+            Alert.alert(t('auth.validationError'), t('auth.enterFullName'))
             return
         }
 
         if (!identifier.trim()) {
-            Alert.alert('Validation Error', 'Please enter your email')
+            Alert.alert(t('auth.validationError'), t('auth.enterEmail'))
             return
         }
 
         if (!phone.trim()) {
-            Alert.alert('Validation Error', 'Please enter your phone number')
+            Alert.alert(t('auth.validationError'), t('auth.enterPhoneOnly'))
             return
         }
 
         if (!password || password.length < 6) {
-            Alert.alert('Validation Error', 'Password must be at least 6 characters')
+            Alert.alert(t('auth.validationError'), t('auth.passwordTooShort'))
             return
         }
 
@@ -101,11 +103,11 @@ export default function AuthScreen() {
             }
 
             Alert.alert(
-                'Account Created',
-                'Now let\'s complete your employer profile.',
+                t('auth.accountCreated'),
+                t('auth.completeProfileDesc'),
                 [
                     {
-                        text: 'Continue',
+                        text: t('common.continue'),
                         onPress: () => {
                             setFullName('')
                             setIdentifier('')
@@ -119,7 +121,7 @@ export default function AuthScreen() {
                 ]
             )
         } catch (err: any) {
-            Alert.alert('Signup Failed', err.response?.data?.error || err.message)
+            Alert.alert(t('auth.signupFailed'), err.response?.data?.error || err.message)
         } finally {
             setLoading(false)
         }
@@ -136,7 +138,7 @@ export default function AuthScreen() {
                 </Text>
                 <TouchableOpacity style={styles.helpBtn}>
                     <Icon name="help-circle-outline" size={16} color="#FFF" />
-                    <Text style={styles.helpText}>Help</Text>
+                    <Text style={styles.helpText}>{t('common.help')}</Text>
                 </TouchableOpacity>
             </View>
 
@@ -147,13 +149,13 @@ export default function AuthScreen() {
                         style={[styles.tab, activeTab === 'login' && styles.activeTab]}
                         onPress={() => setActiveTab('login')}
                     >
-                        <Text style={[styles.tabText, activeTab === 'login' && styles.activeTabText]}>Log in</Text>
+                        <Text style={[styles.tabText, activeTab === 'login' && styles.activeTabText]}>{t('auth.login')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.tab, activeTab === 'signup' && styles.activeTab]}
                         onPress={() => setActiveTab('signup')}
                     >
-                        <Text style={[styles.tabText, activeTab === 'signup' && styles.activeTabText]}>Sign up</Text>
+                        <Text style={[styles.tabText, activeTab === 'signup' && styles.activeTabText]}>{t('auth.signup')}</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -162,20 +164,20 @@ export default function AuthScreen() {
 
                     {activeTab === 'signup' && (
                         <>
-                            <Text style={styles.label}>Full Name</Text>
+                            <Text style={styles.label}>{t('auth.fullName')}</Text>
                             <TextInput
                                 style={styles.input}
-                                placeholder="Rohit"
+                                placeholder={t('auth.placeholderName')}
                                 value={fullName}
                                 onChangeText={setFullName}
                             />
                         </>
                     )}
 
-                    <Text style={styles.label}>{activeTab === 'login' ? 'Enter your email or number' : 'Email'}</Text>
+                    <Text style={styles.label}>{activeTab === 'login' ? t('auth.emailOrPhone') : t('auth.email')}</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder={activeTab === 'login' ? "Email or Mobile Number" : "connect2rohit@gmail.com"}
+                        placeholder={activeTab === 'login' ? t('auth.placeholderEmailPhone') : t('auth.placeholderEmail')}
                         value={identifier}
                         onChangeText={setIdentifier}
                         autoCapitalize="none"
@@ -183,17 +185,18 @@ export default function AuthScreen() {
 
                     {activeTab === 'signup' && (
                         <>
-                            <Text style={styles.label}>Date of Birth</Text>                            <View style={styles.inputWithIcon}>
+                            <Text style={styles.label}>{t('auth.dob')}</Text>
+                            <View style={styles.inputWithIcon}>
                                 <TextInput
                                     style={styles.flexInput}
-                                    placeholder="18/03/2003"
+                                    placeholder={t('auth.placeholderDob')}
                                     value={dob}
                                     onChangeText={setDob}
                                 />
                                 <Icon name="calendar-outline" size={20} color="#999" />
                             </View>
 
-                            <Text style={styles.label}>Phone Number</Text>
+                            <Text style={styles.label}>{t('auth.phone')}</Text>
                             <View style={styles.phoneRow}>
                                 <View style={styles.flagBox}>
                                     {/* Mock Flag */}
@@ -201,7 +204,7 @@ export default function AuthScreen() {
                                 </View>
                                 <TextInput
                                     style={[styles.input, { flex: 1, marginTop: 0 }]}
-                                    placeholder="9784578956"
+                                    placeholder={t('auth.placeholderPhone')}
                                     value={phone}
                                     onChangeText={setPhone}
                                     keyboardType="phone-pad"
@@ -211,11 +214,11 @@ export default function AuthScreen() {
                         </>
                     )}
 
-                    <Text style={styles.label}>{activeTab === 'login' ? 'Enter your password' : 'Set Password'}</Text>
+                    <Text style={styles.label}>{activeTab === 'login' ? t('auth.password') : t('auth.setPassword')}</Text>
                     <View style={styles.inputWithIcon}>
                         <TextInput
                             style={styles.flexInput}
-                            placeholder="•••••••"
+                            placeholder={t('auth.passwordPlaceholder')}
                             secureTextEntry={!showPassword}
                             value={password}
                             onChangeText={setPassword}
@@ -227,41 +230,41 @@ export default function AuthScreen() {
 
                     {activeTab === 'login' && (
                         <TouchableOpacity style={styles.forgotBtn}>
-                            <Text style={styles.forgotText}>Forgot password?</Text>
+                            <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
                         </TouchableOpacity>
                     )}
 
                     <PrimaryButton
-                        title="Continue"
+                        title={t('common.continue')}
                         onPress={activeTab === 'login' ? handleLogin : handleSignup}
                         style={{ marginTop: 24 }}
                     />
 
-                    {loading && <Text style={{ textAlign: 'center', marginTop: 10 }}>Loading...</Text>}
+                    {loading && <Text style={{ textAlign: 'center', marginTop: 10 }}>{t('common.loading')}</Text>}
 
                     {/* Social Login (UI Only for Login tab) */}
                     {activeTab === 'login' && (
                         <>
                             <View style={styles.dividerBox}>
                                 <View style={styles.divider} />
-                                <Text style={styles.orText}>OR</Text>
+                                <Text style={styles.orText}>{t('auth.or')}</Text>
                                 <View style={styles.divider} />
                             </View>
 
                             <TouchableOpacity style={styles.socialBtn}>
                                 <Icon name="logo-apple" size={20} color="#000" />
-                                <Text style={styles.socialText}>Login with Apple</Text>
+                                <Text style={styles.socialText}>{t('auth.loginApple')}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity style={styles.socialBtn}>
                                 <Icon name="logo-google" size={20} color="#DB4437" />
-                                <Text style={styles.socialText}>Login with Google</Text>
+                                <Text style={styles.socialText}>{t('auth.loginGoogle')}</Text>
                             </TouchableOpacity>
 
                             <View style={styles.footerRow}>
-                                <Text style={styles.footerText}>Don't have an account? </Text>
+                                <Text style={styles.footerText}>{t('auth.dontHaveAccount')}</Text>
                                 <TouchableOpacity onPress={() => setActiveTab('signup')}>
-                                    <Text style={styles.signupLink}>Sign up</Text>
+                                    <Text style={styles.signupLink}>{t('auth.signup')}</Text>
                                 </TouchableOpacity>
                             </View>
                         </>

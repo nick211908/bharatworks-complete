@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
     View,
     Text,
@@ -11,11 +11,25 @@ import {
 import { useNavigation } from '@react-navigation/native'
 import PrimaryButton from '../components/PrimaryButton'
 import Icon from 'react-native-vector-icons/Ionicons'
+import { useTranslation } from 'react-i18next'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export default function LanguageSelectionScreen() {
     const navigation = useNavigation<any>()
-    const [selectedLanguage, setSelectedLanguage] = useState('English')
+    const { t, i18n } = useTranslation()
+    const [selectedLanguage, setSelectedLanguage] = useState(i18n.language === 'hi' ? 'Hindi' : 'English')
     const [dropdownVisible, setDropdownVisible] = useState(false)
+
+    useEffect(() => {
+        setSelectedLanguage(i18n.language === 'hi' ? 'Hindi' : 'English')
+    }, [i18n.language])
+
+    const handleLanguageChange = async (lang: string) => {
+        const langCode = lang === 'Hindi' ? 'hi' : 'en'
+        await i18n.changeLanguage(langCode)
+        setSelectedLanguage(lang)
+        setDropdownVisible(false)
+    }
 
     const handleContinue = () => {
         navigation.navigate('Auth')
@@ -32,13 +46,13 @@ export default function LanguageSelectionScreen() {
                 </Text>
                 <TouchableOpacity style={styles.helpBtn}>
                     <Icon name="help-circle-outline" size={16} color="#FFF" />
-                    <Text style={styles.helpText}>Help</Text>
+                    <Text style={styles.helpText}>{t('common.help')}</Text>
                 </TouchableOpacity>
             </View>
 
             <View style={styles.content}>
                 <Text style={styles.title}>
-                    Select your <Text style={styles.highlight}>Language</Text>
+                    {t('common.selectLanguage').split(' Language')[0]} <Text style={styles.highlight}>{t('common.language')}</Text>
                 </Text>
 
                 <TouchableOpacity
@@ -49,17 +63,14 @@ export default function LanguageSelectionScreen() {
                     <Icon name={dropdownVisible ? "caret-up" : "caret-down"} size={16} color="#FF9F1C" />
                 </TouchableOpacity>
 
-                {/* Mock Dropdown items */}
+                {/* Dropdown items */}
                 {dropdownVisible && (
                     <View style={styles.dropdownList}>
-                        {['English', 'Hindi', 'Tamil'].map(lang => (
+                        {['English', 'Hindi'].map(lang => (
                             <TouchableOpacity
                                 key={lang}
                                 style={styles.dropdownItem}
-                                onPress={() => {
-                                    setSelectedLanguage(lang)
-                                    setDropdownVisible(false)
-                                }}
+                                onPress={() => handleLanguageChange(lang)}
                             >
                                 <Text style={styles.itemText}>{lang}</Text>
                             </TouchableOpacity>
@@ -68,7 +79,7 @@ export default function LanguageSelectionScreen() {
                 )}
 
                 <PrimaryButton
-                    title="Continue"
+                    title={t('common.continue')}
                     onPress={handleContinue}
                     style={styles.btn}
                 />

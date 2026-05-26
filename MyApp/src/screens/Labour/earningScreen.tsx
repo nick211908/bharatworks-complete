@@ -9,6 +9,7 @@ import {
   ScrollView,
   RefreshControl,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
@@ -19,6 +20,7 @@ import { PaymentService } from '../../services/PaymentService';
 import { Alert } from 'react-native';
 import COLORS from '../../assets/images/theme/colors';
 import LabourBottomNav from '../../components/LabourBottomNav';
+import { useTranslation } from 'react-i18next';
 
 type TxState = 'IDLE' | 'ENTER_UPI' | 'SUCCESS';
 type TabType = 'overview' | 'history';
@@ -40,9 +42,8 @@ interface EarningsSummary {
   monthlyGrowth: number;
 }
 
-
-
 export default function LabourEarnings() {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
 
@@ -57,12 +58,25 @@ export default function LabourEarnings() {
   const [summary, setSummary] = useState<EarningsSummary | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
+  interface PendingDue {
+    employerId: string;
+    companyName: string;
+    amount: number;
+  }
+  const [pendingDues, setPendingDues] = useState<PendingDue[]>([]);
+  const [pendingModalVisible, setPendingModalVisible] = useState(false);
+  const [requestingPaymentFor, setRequestingPaymentFor] = useState<string | null>(null);
+
   const fetchData = async () => {
     try {
       // Fetch wallet balance
       const balanceRes = await api.get('/wallet/balance');
       setBalance(balanceRes.data.balance || 0);
       setPendingAmount(balanceRes.data.pending || 0);
+
+      // Fetch pending dues breakdown
+      const pendingRes = await api.get('/earnings/pending');
+      setPendingDues(pendingRes.data.pendingDues || []);
 
       // Fetch earnings summary
       const summaryRes = await api.get('/earnings/summary');
@@ -90,8 +104,6 @@ export default function LabourEarnings() {
     fetchData();
   };
 
-
-
   const handleVerifyUpi = async () => {
     setLoading(true);
     setVerifiedName(null);
@@ -100,10 +112,10 @@ export default function LabourEarnings() {
       if (result.isValid) {
         setVerifiedName(result.name || 'Verified ID');
       } else {
-        Alert.alert('Verification Failed', result.message || 'Invalid UPI ID');
+        Alert.alert(t('common.error'), result.message || 'Invalid UPI ID');
       }
     } catch (error) {
-      Alert.alert('Error', 'Could not verify UPI ID');
+      Alert.alert(t('common.error'), 'Could not verify UPI ID');
     } finally {
       setLoading(false);
     }
@@ -112,22 +124,22 @@ export default function LabourEarnings() {
   const handlePaymentRequest = async () => {
     const amountToWithdraw = balance > 0 ? balance : 0;
     if (amountToWithdraw <= 0) {
-      Alert.alert('Error', 'No funds to request.');
+      Alert.alert(t('common.error'), 'No funds to request.');
       return;
     }
     try {
       await api.post('/wallet/payout-request', { amount: amountToWithdraw, upiId: upi });
       setTxState('SUCCESS');
     } catch (error: any) {
-      Alert.alert('Request Failed', error.response?.data?.error || error.message);
+      Alert.alert(t('common.error'), error.response?.data?.error || error.message);
     }
   };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
+    if (hour < 12) return t('labour.goodMorning');
+    if (hour < 17) return t('labour.goodAfternoon');
+    return t('labour.goodEvening');
   };
 
   const renderOverview = () => (
@@ -136,7 +148,7 @@ export default function LabourEarnings() {
       <View style={styles.walletCard}>
         <View style={styles.walletHeader}>
           <View>
-            <Text style={styles.walletLabel}>Total Balance</Text>
+            <Text style={styles.walletLabel}>{t('labour.totalBalance')}</Text>
             <Text style={styles.walletAmount}>₹{balance.toLocaleString()}</Text>
           </View>
           <View style={styles.walletIcon}>
@@ -146,14 +158,23 @@ export default function LabourEarnings() {
 
         <View style={styles.walletStats}>
           <View style={styles.walletStat}>
-            <Text style={styles.walletStatLabel}>Available</Text>
+            <Text style={styles.walletStatLabel}>{t('labour.available')}</Text>
             <Text style={styles.walletStatValue}>₹{balance.toLocaleString()}</Text>
           </View>
           <View style={styles.walletDivider} />
-          <View style={styles.walletStat}>
-            <Text style={styles.walletStatLabel}>Pending</Text>
-            <Text style={styles.walletStatValue}>₹{pendingAmount.toLocaleString()}</Text>
-          </View>
+          <TouchableOpacity 
+            style={styles.walletStat} 
+            onPress={() => setPendingModalVisible(true)}
+            disabled={pendingAmount <= 0}
+          >
+            <Text style={styles.walletStatLabel}>{t('labour.pending')}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Text style={[styles.walletStatValue, pendingAmount > 0 && { textDecorationLine: 'underline' }]}>
+                ₹{pendingAmount.toLocaleString()}
+              </Text>
+              {pendingAmount > 0 && <Feather name="chevron-right" size={16} color="#FFF" />}
+            </View>
+          </TouchableOpacity>
         </View>
 
         {txState === 'IDLE' && (
@@ -162,7 +183,7 @@ export default function LabourEarnings() {
             onPress={() => setTxState('ENTER_UPI')}
           >
             <Feather name="upload" size={18} color="#FFF" />
-            <Text style={styles.withdrawText}>Withdraw to UPI</Text>
+            <Text style={styles.withdrawText}>{t('labour.withdrawToUpi')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -170,10 +191,10 @@ export default function LabourEarnings() {
       {/* Transaction Area */}
       {txState === 'ENTER_UPI' && (
         <View style={styles.upiBox}>
-          <Text style={styles.upiTitle}>Enter UPI ID</Text>
+          <Text style={styles.upiTitle}>{t('labour.enterUpiId')}</Text>
           <TextInput
             style={styles.upiInput}
-            placeholder="yourname@upi"
+            placeholder={t('labour.upiPlaceholder')}
             placeholderTextColor="#9AA3B2"
             value={upi}
             onChangeText={text => {
@@ -184,7 +205,7 @@ export default function LabourEarnings() {
           {verifiedName && (
             <View style={styles.verifiedBox}>
               <MaterialIcons name="verified-user" size={18} color="#00695C" />
-              <Text style={styles.verifiedText}>Verified: {verifiedName}</Text>
+              <Text style={styles.verifiedText}>{t('labour.verifiedAs', { name: verifiedName })}</Text>
             </View>
           )}
           <View style={styles.actionRow}>
@@ -196,7 +217,7 @@ export default function LabourEarnings() {
                 setTxState('IDLE');
               }}
             >
-              <Text style={styles.cancelText}>Cancel</Text>
+              <Text style={styles.cancelText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             {!verifiedName ? (
               <TouchableOpacity
@@ -205,7 +226,7 @@ export default function LabourEarnings() {
                 onPress={handleVerifyUpi}
               >
                 <Text style={styles.withdrawNowText}>
-                  {loading ? 'Verifying...' : 'Verify'}
+                  {loading ? t('labour.verifying') : t('common.confirm')}
                 </Text>
               </TouchableOpacity>
             ) : (
@@ -213,7 +234,7 @@ export default function LabourEarnings() {
                 style={styles.withdrawNowBtn}
                 onPress={handlePaymentRequest}
               >
-                <Text style={styles.withdrawNowText}>Send Request</Text>
+                <Text style={styles.withdrawNowText}>{t('labour.sendRequest')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -225,9 +246,9 @@ export default function LabourEarnings() {
           <View style={styles.successIcon}>
             <MaterialIcons name="check-circle" size={48} color={COLORS.success} />
           </View>
-          <Text style={styles.successTitle}>Request Sent!</Text>
+          <Text style={styles.successTitle}>{t('labour.requestSent')}</Text>
           <Text style={styles.successUpi}>
-            ₹{balance} will be transferred to your UPI
+            {t('labour.transferMsg', { amount: balance })}
           </Text>
           <TouchableOpacity
             style={styles.doneButton}
@@ -237,7 +258,7 @@ export default function LabourEarnings() {
               setTxState('IDLE');
             }}
           >
-            <Text style={styles.doneText}>Done</Text>
+            <Text style={styles.doneText}>{t('labour.done')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -246,29 +267,29 @@ export default function LabourEarnings() {
       {summary && (
         <View style={styles.summaryCard}>
           <View style={styles.summaryHeader}>
-            <Text style={styles.summaryTitle}>This Month</Text>
+            <Text style={styles.summaryTitle}>{t('labour.thisMonth')}</Text>
             <View style={styles.growthBadge}>
               <Feather name="trending-up" size={12} color={COLORS.success} />
               <Text style={styles.growthText}>+{summary.monthlyGrowth}%</Text>
             </View>
           </View>
           <Text style={styles.totalEarnings}>₹{summary.totalEarned.toLocaleString()}</Text>
-          <Text style={styles.earningsLabel}>Total Earnings</Text>
+          <Text style={styles.earningsLabel}>{t('labour.totalEarnings')}</Text>
 
           <View style={styles.metricsRow}>
             <MetricCard
               icon="briefcase"
-              label="Jobs Done"
+              label={t('labour.jobsDone')}
               value={summary.totalJobs.toString()}
             />
             <MetricCard
               icon="calendar"
-              label="Work Days"
+              label={t('labour.workDays')}
               value={summary.workingDays.toString()}
             />
             <MetricCard
               icon="rupee-sign"
-              label="Daily Avg"
+              label={t('labour.dailyAvg')}
               value={`₹${summary.avgDailyRate}`}
             />
           </View>
@@ -279,12 +300,12 @@ export default function LabourEarnings() {
 
   const renderHistory = () => (
     <View style={styles.historyContainer}>
-      <Text style={styles.historyTitle}>Recent Transactions</Text>
+      <Text style={styles.historyTitle}>{t('labour.recentTransactions')}</Text>
       {transactions.length === 0 ? (
         <View style={styles.emptyState}>
           <MaterialIcons name="receipt-long" size={48} color={COLORS.textMuted} />
-          <Text style={styles.emptyText}>No transactions yet</Text>
-          <Text style={styles.emptySubtext}>Your earnings will appear here</Text>
+          <Text style={styles.emptyText}>{t('labour.noTransactions')}</Text>
+          <Text style={styles.emptySubtext}>{t('labour.earningsAppearHere')}</Text>
         </View>
       ) : (
         transactions.map((tx) => (
@@ -334,7 +355,7 @@ export default function LabourEarnings() {
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>{getGreeting()}</Text>
-          <Text style={styles.headerTitle}>Your Earnings</Text>
+          <Text style={styles.headerTitle}>{t('labour.yourEarnings')}</Text>
         </View>
         <TouchableOpacity style={styles.helpButton}>
           <Feather name="help-circle" size={24} color={COLORS.primary} />
@@ -348,7 +369,7 @@ export default function LabourEarnings() {
           onPress={() => setActiveTab('overview')}
         >
           <Text style={[styles.tabButtonText, activeTab === 'overview' && styles.tabButtonTextActive]}>
-            Overview
+            {t('labour.overview')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -356,7 +377,7 @@ export default function LabourEarnings() {
           onPress={() => setActiveTab('history')}
         >
           <Text style={[styles.tabButtonText, activeTab === 'history' && styles.tabButtonTextActive]}>
-            History
+            {t('labour.history')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -378,6 +399,62 @@ export default function LabourEarnings() {
 
       {/* Bottom Navigation */}
       <LabourBottomNav activeTab="Earnings" />
+
+      {/* Pending Dues Modal */}
+      <Modal
+        visible={pendingModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setPendingModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('labour.pendingDues')}</Text>
+              <TouchableOpacity onPress={() => setPendingModalVisible(false)}>
+                <Feather name="x" size={24} color={COLORS.textPrimary} />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalBody}>
+              {pendingDues.length === 0 ? (
+                <Text style={styles.emptyText}>{t('labour.noPendingDues')}</Text>
+              ) : (
+                pendingDues.map((due) => (
+                  <View key={due.employerId} style={styles.dueItem}>
+                    <View style={styles.dueInfo}>
+                      <Text style={styles.dueCompany}>{due.companyName}</Text>
+                      <Text style={styles.dueAmount}>₹{due.amount.toLocaleString()}</Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={[styles.requestBtn, requestingPaymentFor === due.employerId && { opacity: 0.7 }]}
+                      disabled={requestingPaymentFor === due.employerId}
+                      onPress={async () => {
+                        setRequestingPaymentFor(due.employerId);
+                        try {
+                          await api.post('/earnings/request-payment', {
+                            employerId: due.employerId,
+                            amount: due.amount
+                          });
+                          Alert.alert(t('common.success'), t('labour.requestPaymentTo', { name: due.companyName }));
+                        } catch (err: any) {
+                          Alert.alert(t('common.error'), err.response?.data?.error || t('labour.failedToSendRequest'));
+                        } finally {
+                          setRequestingPaymentFor(null);
+                        }
+                      }}
+                    >
+                      <Text style={styles.requestBtnText}>
+                        {requestingPaymentFor === due.employerId ? t('common.loading') : t('labour.requestPayment')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ))
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -720,9 +797,8 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   emptySubtext: {
-    fontSize: 13,
+    fontSize: 14,
     color: COLORS.textMuted,
-    marginTop: 4,
   },
   transactionCard: {
     flexDirection: 'row',
@@ -731,16 +807,17 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   transactionIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.screenBg,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    backgroundColor: COLORS.screenBg,
+    marginRight: 12,
   },
   transactionDetails: {
     flex: 1,
@@ -749,7 +826,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.textPrimary,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   transactionDate: {
     fontSize: 12,
@@ -774,7 +851,7 @@ const styles = StyleSheet.create({
   },
   statusBadge: {
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 2,
     borderRadius: 12,
   },
   completedBadge: {
@@ -788,8 +865,8 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 10,
-    fontWeight: '700',
-    textTransform: 'uppercase',
+    fontWeight: '600',
+    textTransform: 'capitalize',
   },
   completedText: {
     color: COLORS.success,
@@ -799,5 +876,70 @@ const styles = StyleSheet.create({
   },
   failedText: {
     color: COLORS.error,
+  },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: COLORS.card,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  modalBody: {
+    marginBottom: 20,
+  },
+  dueItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: COLORS.screenBg,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  dueInfo: {
+    flex: 1,
+  },
+  dueCompany: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+    marginBottom: 4,
+  },
+  dueAmount: {
+    fontSize: 14,
+    color: COLORS.success,
+    fontWeight: '700',
+  },
+  requestBtn: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  requestBtnText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  metricIcon: {
+    marginBottom: 8,
   },
 });

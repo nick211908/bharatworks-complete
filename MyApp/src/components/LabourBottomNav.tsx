@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import COLORS from '../assets/images/theme/colors';
+import { useTranslation } from 'react-i18next';
 
 const TabButton = ({
   label,
@@ -55,6 +56,7 @@ interface LabourBottomNavProps {
 }
 
 export default function LabourBottomNav({ activeTab }: LabourBottomNavProps) {
+    const { t } = useTranslation();
     const navigation = useNavigation<any>();
 
     const handleLabourHome = () => {
@@ -73,16 +75,16 @@ export default function LabourBottomNav({ activeTab }: LabourBottomNavProps) {
     return (
         <View style={styles.tabBar}>
             <TouchableOpacity onPress={handleLabourHome}>
-                <TabButton label="Home" icon="🏠" active={activeTab === 'Home'} />
+                <TabButton label={t('profile.home')} icon="🏠" active={activeTab === 'Home'} />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleLabourJobs}>
-                <TabButton label="Jobs" icon="🧰" active={activeTab === 'Jobs'} />
+                <TabButton label={t('labour.jobs')} icon="🧰" active={activeTab === 'Jobs'} />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleLabourEarnings}>
-                <TabButton label="Earnings" icon="₹" active={activeTab === 'Earnings'} />
+                <TabButton label={t('labour.earnings')} icon="₹" active={activeTab === 'Earnings'} />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleLabourProfile}>
-                <TabButton label="Profile" icon="👤" active={activeTab === 'Profile'} />
+                <TabButton label={t('profile.title')} icon="👤" active={activeTab === 'Profile'} />
             </TouchableOpacity>
         </View>
     );

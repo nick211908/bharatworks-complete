@@ -11,7 +11,7 @@ import {
   Button,
   Input,
 } from '../../../components/common';
-import { t } from '../../../utils/i18n';
+import { useTranslation } from 'react-i18next';
 
 interface PasswordSetupViewProps {
   verifiedUserId: string | null;
@@ -22,17 +22,18 @@ export const PasswordSetupView: React.FC<PasswordSetupViewProps> = ({
   verifiedUserId,
   onComplete,
 }) => {
+  const { t } = useTranslation();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSetPassword = async () => {
     if (password.length < 6) {
-      Alert.alert('Invalid Password', t('invalidPassword'));
+      Alert.alert(t('common.error'), t('auth.invalidPassword'));
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert('Password Mismatch', t('passwordMismatch'));
+      Alert.alert(t('common.error'), t('auth.passwordMismatch'));
       return;
     }
 
@@ -41,12 +42,12 @@ export const PasswordSetupView: React.FC<PasswordSetupViewProps> = ({
       await api.post('/auth/update-password', { password });
 
       Alert.alert(
-        'Password Set!',
-        'You can now login with phone + password next time.',
-        [{ text: 'OK', onPress: onComplete }]
+        t('auth.passwordSetSuccessTitle'),
+        t('auth.passwordSetSuccessMessage'),
+        [{ text: t('common.confirm'), onPress: onComplete }]
       );
     } catch (error: any) {
-      Alert.alert('Failed to Set Password', error.response?.data?.error || error.message);
+      Alert.alert(t('auth.passwordSetFailed'), error.response?.data?.error || error.message);
       onComplete();
     } finally {
       setIsLoading(false);
@@ -61,35 +62,35 @@ export const PasswordSetupView: React.FC<PasswordSetupViewProps> = ({
     <View style={styles.container}>
       <Logo size="large" showText={false} />
 
-      <Text style={styles.title}>{t('setPasswordTitle')}</Text>
+      <Text style={styles.title}>{t('auth.setPasswordTitle')}</Text>
 
-      <Text style={styles.subtitle}>{t('setPasswordSubtitle')}</Text>
+      <Text style={styles.subtitle}>{t('auth.setPasswordSubtitle')}</Text>
 
       <Input
-        label={t('passwordLabel')}
-        placeholder={t('setPasswordPlaceholder')}
+        label={t('auth.passwordLabel')}
+        placeholder={t('auth.setPasswordPlaceholder')}
         secureTextEntry
         value={password}
         onChangeText={setPassword}
       />
 
       <Input
-        label={t('confirmPasswordLabel')}
-        placeholder={t('confirmPasswordPlaceholder')}
+        label={t('auth.confirmPasswordLabel')}
+        placeholder={t('auth.confirmPasswordPlaceholder')}
         secureTextEntry
         value={confirmPassword}
         onChangeText={setConfirmPassword}
       />
 
       <Button
-        title={isLoading ? t('settingPassword') : t('setPasswordBtn')}
+        title={isLoading ? t('auth.settingPassword') : t('auth.setPasswordBtn')}
         onPress={handleSetPassword}
         loading={isLoading}
         disabled={isLoading}
       />
 
       <Button
-        title={t('skipPassword')}
+        title={t('auth.skipPassword')}
         onPress={handleSkip}
         variant="text"
         style={styles.skipButton}

@@ -14,6 +14,7 @@ import {
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 import api from '../lib/api'
+import { useTranslation } from 'react-i18next'
 
 type AttendanceStatus = 'PRESENT' | 'HALF' | 'ABSENT' | 'PENDING'
 type PaymentStatus = 'UNPAID' | 'PARTIAL' | 'PAID'
@@ -44,14 +45,15 @@ const STATUS_COLORS: Record<AttendanceStatus, string> = {
     PENDING: '#E0E0E0',
 }
 
-const STATUS_LABELS: Record<AttendanceStatus, string> = {
-    PRESENT: 'P',
-    HALF: 'H',
-    ABSENT: 'A',
+const getStatusLabels = (t: any): Record<AttendanceStatus, string> => ({
+    PRESENT: t('attendance.presentLabel'),
+    HALF: t('attendance.halfDayLabel'),
+    ABSENT: t('attendance.absentLabel'),
     PENDING: '-',
-}
+})
 
 export default function LabourAttendanceRegister() {
+    const { t } = useTranslation()
     const [workers, setWorkers] = useState<Worker[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -89,7 +91,7 @@ export default function LabourAttendanceRegister() {
 
             setWorkers(response.data?.workers || [])
         } catch (err: any) {
-            const msg = err?.response?.data?.error || err?.message || 'Failed to fetch attendance data'
+            const msg = err?.response?.data?.error || err?.message || t('attendance.fetchError')
             console.error('Attendance fetch error:', err?.response?.status, msg)
             setError(msg)
         } finally {
@@ -153,7 +155,7 @@ export default function LabourAttendanceRegister() {
             setSelectedWorker(null)
             setSelectedDate(null)
         } catch (error: any) {
-            Alert.alert('Error', error?.response?.data?.error || 'Failed to mark attendance')
+            Alert.alert(t('auth.validationError'), error?.response?.data?.error || t('attendance.markError'))
         }
     }
 
@@ -162,7 +164,7 @@ export default function LabourAttendanceRegister() {
 
         const amount = parseFloat(paymentAmount)
         if (isNaN(amount) || amount <= 0) {
-            Alert.alert('Invalid Amount', 'Please enter a valid payment amount')
+            Alert.alert(t('attendance.invalidAmountTitle'), t('attendance.invalidAmount'))
             return
         }
 
@@ -173,12 +175,12 @@ export default function LabourAttendanceRegister() {
                 amount,
             })
 
-            Alert.alert('Success', `Payment of ₹${amount} processed successfully`)
+            Alert.alert(t('job.successTitle'), t('attendance.paymentSuccess', { amount }))
             setPaymentModalVisible(false)
             setPaymentAmount('')
             fetchAttendance()
         } catch (error: any) {
-            Alert.alert('Error', error?.response?.data?.error || 'Failed to process payment')
+            Alert.alert(t('auth.validationError'), error?.response?.data?.error || t('attendance.paymentError'))
         } finally {
             setProcessing(false)
         }
@@ -186,12 +188,12 @@ export default function LabourAttendanceRegister() {
 
     const formatDate = (dateStr: string) => {
         const date = new Date(dateStr)
-        return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+        return date.toLocaleDateString(t('common.language') === 'Hindi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short' })
     }
 
     const formatDay = (dateStr: string) => {
         const date = new Date(dateStr)
-        return date.toLocaleDateString('en-IN', { weekday: 'short' })
+        return date.toLocaleDateString(t('common.language') === 'Hindi' ? 'hi-IN' : 'en-IN', { weekday: 'short' })
     }
 
     const calculateDayTotal = (date: string) => {
@@ -213,7 +215,7 @@ export default function LabourAttendanceRegister() {
             <SafeAreaView style={styles.safe}>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#1E2C60" />
-                    <Text style={styles.loadingText}>Loading attendance...</Text>
+                    <Text style={styles.loadingText}>{t('attendance.loading')}</Text>
                 </View>
             </SafeAreaView>
         )
@@ -224,13 +226,13 @@ export default function LabourAttendanceRegister() {
             <SafeAreaView style={styles.safe}>
                 <View style={styles.loadingContainer}>
                     <Icon name="cloud-offline-outline" size={48} color="#F44336" />
-                    <Text style={[styles.loadingText, { color: '#F44336', marginTop: 12 }]}>Error loading attendance</Text>
+                    <Text style={[styles.loadingText, { color: '#F44336', marginTop: 12 }]}>{t('attendance.errorTitle')}</Text>
                     <Text style={{ color: '#888', fontSize: 13, textAlign: 'center', marginTop: 4, paddingHorizontal: 32 }}>{error}</Text>
                     <TouchableOpacity
                         onPress={() => { setLoading(true); fetchAttendance() }}
                         style={{ marginTop: 20, backgroundColor: '#1E2C60', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 10 }}
                     >
-                        <Text style={{ color: '#FFF', fontWeight: '600' }}>Retry</Text>
+                        <Text style={{ color: '#FFF', fontWeight: '600' }}>{t('attendance.retry')}</Text>
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
@@ -241,7 +243,7 @@ export default function LabourAttendanceRegister() {
         <SafeAreaView style={styles.safe}>
             {/* Header */}
             <View style={styles.header}>
-                <Text style={styles.title}>Attendance Register</Text>
+                <Text style={styles.title}>{t('attendance.title')}</Text>
                 <Text style={styles.subtitle}>{dates.length > 0 && `${formatDate(dates[0])} - ${formatDate(dates[dates.length - 1])}`}</Text>
             </View>
 
@@ -250,13 +252,13 @@ export default function LabourAttendanceRegister() {
                 <View style={styles.summaryRow}>
                     <View style={styles.summaryItem}>
                         <Text style={styles.summaryNumber}>{workers.length}</Text>
-                        <Text style={styles.summaryLabel}>Workers</Text>
+                        <Text style={styles.summaryLabel}>{t('attendance.workers')}</Text>
                     </View>
                     <View style={styles.summaryItem}>
                         <Text style={[styles.summaryNumber, styles.dueAmount]}>
                             ₹{calculateGrandTotal().toLocaleString()}
                         </Text>
-                        <Text style={styles.summaryLabel}>Total Dues</Text>
+                        <Text style={styles.summaryLabel}>{t('attendance.totalDues')}</Text>
                     </View>
                 </View>
             </View>
@@ -265,15 +267,15 @@ export default function LabourAttendanceRegister() {
             <View style={styles.legendContainer}>
                 <View style={styles.legendItem}>
                     <View style={[styles.legendDot, { backgroundColor: STATUS_COLORS.PRESENT }]} />
-                    <Text style={styles.legendText}>Present</Text>
+                    <Text style={styles.legendText}>{t('attendance.present')}</Text>
                 </View>
                 <View style={styles.legendItem}>
                     <View style={[styles.legendDot, { backgroundColor: STATUS_COLORS.HALF }]} />
-                    <Text style={styles.legendText}>Half Day</Text>
+                    <Text style={styles.legendText}>{t('attendance.halfDay')}</Text>
                 </View>
                 <View style={styles.legendItem}>
                     <View style={[styles.legendDot, { backgroundColor: STATUS_COLORS.ABSENT }]} />
-                    <Text style={styles.legendText}>Absent</Text>
+                    <Text style={styles.legendText}>{t('attendance.absent')}</Text>
                 </View>
             </View>
 
@@ -290,10 +292,10 @@ export default function LabourAttendanceRegister() {
                     {/* Table Header */}
                     <View style={[styles.row, styles.headerRow]}>
                         <View style={[styles.cell, styles.nameCell]}>
-                            <Text style={styles.headerText}>Worker</Text>
+                            <Text style={styles.headerText}>{t('attendance.worker')}</Text>
                         </View>
                         <View style={[styles.cell, styles.duesCell]}>
-                            <Text style={styles.headerText}>Dues</Text>
+                            <Text style={styles.headerText}>{t('attendance.dues')}</Text>
                         </View>
                         {dates.map(date => (
                             <View key={date} style={styles.dateCell}>
@@ -302,7 +304,7 @@ export default function LabourAttendanceRegister() {
                             </View>
                         ))}
                         <View style={[styles.cell, styles.actionCell]}>
-                            <Text style={styles.headerText}>Pay</Text>
+                            <Text style={styles.headerText}>{t('attendance.pay')}</Text>
                         </View>
                     </View>
 
@@ -311,7 +313,7 @@ export default function LabourAttendanceRegister() {
                         <View style={{ paddingVertical: 40, alignItems: 'center' }}>
                             <Icon name="people-outline" size={40} color="#CCC" />
                             <Text style={{ color: '#AAA', marginTop: 12, fontSize: 14, textAlign: 'center' }}>
-                                No workers yet.{'\n'}Post a job and hire workers to see them here.
+                                {t('attendance.noWorkers')}
                             </Text>
                         </View>
                     ) : workers.map(worker => (
@@ -319,14 +321,24 @@ export default function LabourAttendanceRegister() {
                             {/* Worker Name */}
                             <View style={[styles.cell, styles.nameCell]}>
                                 <Text style={styles.workerName}>{worker.name}</Text>
-                                <Text style={styles.workerPhone}>₹{worker.wage}/day</Text>
+                                <Text style={styles.workerPhone}>₹{worker.wage}{t('home.perDay')}</Text>
                             </View>
 
                             {/* Dues */}
                             <View style={[styles.cell, styles.duesCell]}>
-                                <Text style={[styles.duesText, worker.dues > 0 && styles.duesPending]}>
-                                    ₹{worker.dues.toLocaleString()}
-                                </Text>
+                                <TouchableOpacity 
+                                    onPress={() => {
+                                        if (worker.dues > 0) {
+                                            setSelectedWorker(worker)
+                                            setPaymentModalVisible(true)
+                                        }
+                                    }}
+                                    disabled={worker.dues <= 0}
+                                >
+                                    <Text style={[styles.duesText, worker.dues > 0 && styles.duesPending, { textDecorationLine: worker.dues > 0 ? 'underline' : 'none' }]}>
+                                        ₹{worker.dues.toLocaleString()}
+                                    </Text>
+                                </TouchableOpacity>
                             </View>
 
                             {/* Attendance Cells */}
@@ -350,7 +362,7 @@ export default function LabourAttendanceRegister() {
                                         }}
                                     >
                                         <Text style={styles.statusText}>
-                                            {STATUS_LABELS[status]}
+                                            {getStatusLabels(t)[status]}
                                         </Text>
                                         {isPartial && <View style={styles.partialIndicator} />}
                                     </TouchableOpacity>
@@ -376,7 +388,7 @@ export default function LabourAttendanceRegister() {
                     {/* Day Total Row */}
                     <View style={[styles.row, styles.totalRow]}>
                         <View style={[styles.cell, styles.nameCell]}>
-                            <Text style={styles.totalText}>Day Total</Text>
+                            <Text style={styles.totalText}>{t('attendance.dayTotal')}</Text>
                         </View>
                         <View style={[styles.cell, styles.duesCell]}>
                             <Text style={styles.totalText}>-</Text>
@@ -407,7 +419,7 @@ export default function LabourAttendanceRegister() {
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Mark Attendance</Text>
+                        <Text style={styles.modalTitle}>{t('attendance.markTitle')}</Text>
                         <Text style={styles.modalSubtitle}>
                             {selectedWorker?.name} - {selectedDate && formatDate(selectedDate)}
                         </Text>
@@ -427,7 +439,7 @@ export default function LabourAttendanceRegister() {
                                     }
                                 >
                                     <Text style={styles.statusBtnText}>
-                                        {status === 'PRESENT' ? 'Present' : status === 'HALF' ? 'Half Day' : 'Absent'}
+                                        {status === 'PRESENT' ? t('attendance.present') : status === 'HALF' ? t('attendance.halfDay') : t('attendance.absent')}
                                     </Text>
                                 </TouchableOpacity>
                             ))}
@@ -440,7 +452,7 @@ export default function LabourAttendanceRegister() {
                                 setSelectedDate(null)
                             }}
                         >
-                            <Text style={styles.cancelBtnText}>Cancel</Text>
+                            <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -458,35 +470,35 @@ export default function LabourAttendanceRegister() {
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Make Payment</Text>
+                        <Text style={styles.modalTitle}>{t('attendance.makePayment')}</Text>
                         <Text style={styles.modalSubtitle}>
                             {selectedWorker?.name}
                         </Text>
 
                         <View style={styles.paymentInfo}>
                             <View style={styles.paymentInfoRow}>
-                                <Text style={styles.paymentInfoLabel}>Total Earned:</Text>
+                                <Text style={styles.paymentInfoLabel}>{t('attendance.totalEarned')}</Text>
                                 <Text style={styles.paymentInfoValue}>₹{selectedWorker?.totalEarned.toLocaleString()}</Text>
                             </View>
                             <View style={styles.paymentInfoRow}>
-                                <Text style={styles.paymentInfoLabel}>Total Paid:</Text>
+                                <Text style={styles.paymentInfoLabel}>{t('attendance.totalPaid')}</Text>
                                 <Text style={styles.paymentInfoValue}>₹{selectedWorker?.totalPaid.toLocaleString()}</Text>
                             </View>
                             <View style={styles.paymentInfoRow}>
-                                <Text style={styles.paymentInfoLabel}>Balance Due:</Text>
+                                <Text style={styles.paymentInfoLabel}>{t('attendance.balanceDue')}</Text>
                                 <Text style={[styles.paymentInfoValue, styles.dueAmount]}>
                                     ₹{selectedWorker?.dues.toLocaleString()}
                                 </Text>
                             </View>
                         </View>
 
-                        <Text style={styles.inputLabel}>Payment Amount</Text>
+                        <Text style={styles.inputLabel}>{t('attendance.paymentAmount')}</Text>
                         <TextInput
                             style={styles.amountInput}
                             value={paymentAmount}
                             onChangeText={setPaymentAmount}
                             keyboardType="numeric"
-                            placeholder="Enter amount"
+                            placeholder={t('attendance.enterAmount')}
                             placeholderTextColor="#999"
                         />
 
@@ -499,7 +511,7 @@ export default function LabourAttendanceRegister() {
                                     setSelectedWorker(null)
                                 }}
                             >
-                                <Text style={styles.cancelBtnText}>Cancel</Text>
+                                <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={[styles.confirmBtn, processing && styles.confirmBtnDisabled]}
@@ -509,7 +521,7 @@ export default function LabourAttendanceRegister() {
                                 {processing ? (
                                     <ActivityIndicator color="#FFF" size="small" />
                                 ) : (
-                                    <Text style={styles.confirmBtnText}>Pay Now</Text>
+                                    <Text style={styles.confirmBtnText}>{t('attendance.payNow')}</Text>
                                 )}
                             </TouchableOpacity>
                         </View>
@@ -715,6 +727,42 @@ const styles = StyleSheet.create({
     payBtnDisabled: {
         backgroundColor: '#CCC',
     },
+    confirmBtn: {
+        backgroundColor: '#1E2C60',
+        paddingVertical: 14,
+        paddingHorizontal: 24,
+        borderRadius: 12,
+        marginLeft: 12,
+        flex: 1,
+        alignItems: 'center',
+    },
+    confirmBtnDisabled: {
+        backgroundColor: '#CCC',
+    },
+    confirmBtnText: {
+        color: '#FFF',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    modalActions: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 10,
+    },
+    inputLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 8,
+    },
+    amountInput: {
+        backgroundColor: '#F0F0F0',
+        borderRadius: 10,
+        padding: 12,
+        fontSize: 16,
+        color: '#333',
+        marginBottom: 20,
+    },
     totalText: {
         fontSize: 13,
         fontWeight: '700',
@@ -725,109 +773,4 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#666',
     },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-    },
-    modalContent: {
-        backgroundColor: '#FFF',
-        borderRadius: 20,
-        padding: 24,
-        width: '100%',
-        maxWidth: 400,
-    },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: '#1A1A1A',
-        textAlign: 'center',
-    },
-    modalSubtitle: {
-        fontSize: 14,
-        color: '#666',
-        textAlign: 'center',
-        marginTop: 4,
-        marginBottom: 20,
-    },
-    statusButtons: {
-        gap: 12,
-    },
-    statusBtn: {
-        paddingVertical: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-    },
-    statusBtnText: {
-        color: '#FFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    cancelBtn: {
-        marginTop: 16,
-        paddingVertical: 14,
-        alignItems: 'center',
-    },
-    cancelBtnText: {
-        color: '#666',
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    paymentInfo: {
-        backgroundColor: '#F8F9FC',
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 20,
-    },
-    paymentInfoRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 8,
-    },
-    paymentInfoLabel: {
-        fontSize: 14,
-        color: '#666',
-    },
-    paymentInfoValue: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
-    },
-    inputLabel: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 8,
-    },
-    amountInput: {
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-        borderRadius: 12,
-        padding: 16,
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 20,
-    },
-    modalActions: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    confirmBtn: {
-        flex: 1,
-        backgroundColor: '#4CAF50',
-        borderRadius: 12,
-        paddingVertical: 14,
-        alignItems: 'center',
-    },
-    confirmBtnDisabled: {
-        opacity: 0.6,
-    },
-    confirmBtnText: {
-        color: '#FFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-})
+});

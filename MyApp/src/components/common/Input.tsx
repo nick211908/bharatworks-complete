@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -52,6 +53,8 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
   containerStyle,
   ...textInputProps
 }) => {
+  const { t } = useTranslation();
+
   return (
     <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
@@ -63,7 +66,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
           {...textInputProps}
         />
         <TouchableOpacity onPress={onToggleVisibility} style={styles.eyeButton}>
-          <Text style={styles.eyeText}>{showPassword ? 'Hide' : 'Show'}</Text>
+          <Text style={styles.eyeText}>{showPassword ? t('auth.hide') : t('auth.show')}</Text>
         </TouchableOpacity>
       </View>
       {error && <Text style={styles.errorText}>{error}</Text>}

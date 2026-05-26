@@ -13,15 +13,15 @@ import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { AuthService } from '../../services/AuthService';
+import { useTranslation } from 'react-i18next';
 
 import COLORS from '../../assets/images/theme/colors';
 import LabourBottomNav from '../../components/LabourBottomNav';
 
 export default function LabourProfile() {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const { profile } = useUserProfile();
-
-
 
   const handleLogout = async () => {
     try {
@@ -42,7 +42,7 @@ export default function LabourProfile() {
 
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {/* HEADER */}
-        <Text style={styles.header}>My Profile</Text>
+        <Text style={styles.header}>{t('labour.myProfile')}</Text>
 
         {/* AVATAR */}
         <View style={styles.avatarSection}>
@@ -56,46 +56,46 @@ export default function LabourProfile() {
           </View>
 
           <Text style={styles.name}>{profile?.name || 'User'}</Text>
-          <Text style={styles.viewProfileText}>Verified Member</Text>
+          <Text style={styles.viewProfileText}>{t('labour.verifiedMember')}</Text>
         </View>
 
         {/* INFO GRIDS */}
-        <Text style={styles.sectionTitle}>Personal Details</Text>
+        <Text style={styles.sectionTitle}>{t('auth.personalDetails')}</Text>
         <View style={styles.sectionCard}>
           <InfoCard
             icon={<Feather name="phone" size={18} color={COLORS.primary} />}
-            title="Phone Number"
+            title={t('auth.phoneNumberLabel')}
             value={profile?.phone || 'N/A'}
           />
           <View style={styles.divider} />
           <InfoCard
             icon={<Feather name="tool" size={18} color={COLORS.primary} />}
-            title="Primary Skill"
-            value="Labour"
+            title={t('labour.primarySkill')}
+            value={t('auth.labour')}
           />
           <View style={styles.divider} />
           <InfoCard
             icon={<Feather name="clock" size={18} color={COLORS.primary} />}
-            title="Work Experience"
+            title={t('labour.workExperience')}
             value="N/A"
           />
         </View>
 
         {/* DOCUMENTS */}
         <View style={styles.documentsSection}>
-          <Text style={styles.sectionTitle}>Verification Documents</Text>
+          <Text style={styles.sectionTitle}>{t('labour.verificationDocuments')}</Text>
 
           <View style={styles.sectionCard}>
-            <DocumentRow title="Aadhaar Card" status="Uploaded" success={true} />
+            <DocumentRow title={t('labour.aadhaarCard')} status={t('labour.uploaded')} success={true} />
             <View style={styles.divider} />
-            <DocumentRow title="PAN Card" status="Not Added" success={false} />
+            <DocumentRow title={t('labour.panCard')} status={t('labour.notAdded')} success={false} />
           </View>
         </View>
 
         {/* LOGOUT BUTTON */}
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Feather name="log-out" size={18} color="#FF4D4D" />
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={styles.logoutText}>{t('labour.logout')}</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -163,7 +163,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: COLORS.screenBg,
-    padding: 16,
   },
 
   header: {
@@ -342,8 +341,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 15,
   },
-
-
 
   bannerBackground: {
     position: 'absolute',
